@@ -42,4 +42,3 @@ for ticker in ticker_list:
 # %%
 master.to_csv('SP500.csv')
 master.drop(['Unnamed: 0'], axis = 1, inplace=True)
-# %%
