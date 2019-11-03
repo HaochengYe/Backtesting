@@ -78,9 +78,7 @@ def AnnVol(df, cycle, time):
 # %%
 
 test = pd.DataFrame(df.groupby(axis=1).apply(PriceReverse,10, 20))
-    
-    
-    
+
 
 # %%
 
