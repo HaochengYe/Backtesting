@@ -90,7 +90,7 @@ for i in ticker[:2]:
 
 # %%
 class Agent():
-    def __init__(self, balance, max_holding, cycle, data, strategies):
+    def __init__(self, balance, data, strategies):
         """
         Balance: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -100,27 +100,53 @@ class Agent():
         """
         self.balance = balance
         self.max_holding = max_holding
-        self.cycle
-        self.data
-        self.strategies
+        self.cycle = cycle
+        self.data = data
+        self.strategies = strategies
 
 
-    def PitchStock(self, strategy, time):
+    def PitchStock(self, strategy, data, time):
         """
         Argument strategy: a function that takes (df, cycle, time) as argument
         return ranking: dictionary {Stock: Value} Value is some metric
         """
+        cycle = self.cycle
+        for i in ticker:
+            ranking[i] = strategy(data, cycle, time)
+        return sorted(ranking, key = ranking.get)[:20]
+            
 
-
-    def Trading(self, ranking, record, time):
+    def Trading(self, ranking, data, time):
         """
         Argument ranking: dictionary {Stock: Value} Value is some metric
                 record: dictionary (accounting book for holdings)
         returns nothing but changes the balance and record of the Agent
         """
+        balance = self.balance
+        avail_cash = balance['cash']
+        for i in ranking:
+            if i not in balance:
+                num_to_buy = (INITIAL_BALANCE / MAX_HOLDING_NUM) // data[i][time]
+                balance[i] = num_to_buy
+                avail_cash -= num_to_buy * data[i][time]
+        for i in balance:
+            if i not in ranking:
+                num_to_sell = balance[i]
+                del balance[i]
+                avail_cash += num_to_sell * data[i][time]
+        balance['cash'] = avail_cash
+        self.balance = balance
+        
+
 
     def BackTesting(self):
         """
-        Return a dictionary ()
+        Return a dictionary {Strat1: Return, Strat2: Return...}
         """
+        T = len(self.data) // self.cycle
+        
+
     
+
+
+# %%
