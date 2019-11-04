@@ -124,12 +124,3 @@ class Agent():
         Return a dictionary ()
         """
     
-
-
-
-def execute(ranking):
-    """
-    Argument ranking: dictionary {Stock_Ticker: Value} Value is one of the metrics
-    return: dictionary {Stock_Ticker: Purchase Amount}
-    """
-    to_purchase = 
