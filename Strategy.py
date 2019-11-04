@@ -110,6 +110,7 @@ class Agent():
         Argument strategy: a function that takes (df, cycle, time) as argument
         return ranking: dictionary {Stock: Value} Value is some metric
         """
+        ranking = {}
         cycle = self.cycle
         for i in ticker:
             ranking[i] = strategy(data, cycle, time)
