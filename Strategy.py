@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 
 
 # %%
-ticker = df.columns
+df = pd.read_csv("SP500.csv")
+df.drop(['Unnamed: 0'], axis = 1, inplace=True)
+ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 REBALANCE_PERIOD = 20
 INITIAL_BALANCE = 1e4
@@ -77,7 +79,6 @@ def AnnVol(df, cycle, time):
 
 # %%
 
-test = pd.DataFrame(df.groupby(axis=1).apply(PriceReverse,10, 20))
 
 
 # %%
