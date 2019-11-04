@@ -92,7 +92,7 @@ for i in ticker[:2]:
 class Agent():
     def __init__(self, balance, max_holding, cycle, data, strategies):
         """
-        Balance keeps track of the money balance of the agent
+        Balance: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
         Cycle is the rebalancing period
         Data is the dataset
@@ -119,9 +119,9 @@ class Agent():
         returns nothing but changes the balance and record of the Agent
         """
 
-    def KeepRecord(self):
+    def BackTesting(self):
         """
-
+        Return a dictionary ()
         """
     
 
