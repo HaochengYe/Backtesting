@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 # %%
 df = pd.read_csv("SP500.csv")
 df.drop(['Unnamed: 0'], axis = 1, inplace=True)
+print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 REBALANCE_PERIOD = 20
 INITIAL_BALANCE = 1e4
 MAX_HOLDING_NUM = 20
+TRANS_COST = 0.01
 
 # %%
 def PriceReverse(df, cycle, time):
@@ -77,11 +79,53 @@ def AnnVol(df, cycle, time):
     except KeyError:
         return None
 
-# %%
-
-
+strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
 
 # %%
+test = test[ticker[:2]][:50]
+ranking = {}
+for i in ticker[:2]:
+    ranking[i] = strategies[0](test[i], 20, 40)
+
+
+# %%
+class Agent():
+    def __init__(self, balance, max_holding, cycle, data, strategies):
+        """
+        Balance keeps track of the money balance of the agent
+        Max_holding is the maximum number of stocks this agent can hold
+        Cycle is the rebalancing period
+        Data is the dataset
+        Strategies is which factor investing stratgy this Agent has in disposal
+        """
+        self.balance = balance
+        self.max_holding = max_holding
+        self.cycle
+        self.data
+        self.strategies
+
+
+    def PitchStock(self, strategy, time):
+        """
+        Argument strategy: a function that takes (df, cycle, time) as argument
+        return ranking: dictionary {Stock: Value} Value is some metric
+        """
+
+
+    def Trading(self, ranking, record, time):
+        """
+        Argument ranking: dictionary {Stock: Value} Value is some metric
+                record: dictionary (accounting book for holdings)
+        returns nothing but changes the balance and record of the Agent
+        """
+
+    def KeepRecord(self):
+        """
+
+        """
+    
+
+
 
 def execute(ranking):
     """
