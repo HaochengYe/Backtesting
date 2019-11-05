@@ -75,7 +75,7 @@ def AnnVol(df, cycle, time):
     try:
         r_2 = int(0)
         for i in range(1, cycle):
-            log = np.log(df.loc[i] / df.loc[i-1])
+            log = np.log(df.loc[time-i] / df.loc[time-i-1])
             r_2 += log**2
         result = np.sqrt(252/cycle * r_2)
         return result
@@ -187,6 +187,7 @@ class Agent():
                 print("Rebalancing for %s time!" % i)
             portfolio_value[strategy.__name__] = value_ts
             portfolio_cost[strategy.__name__] = cost_ts    
+        return portfolio_value, portfolio_cost
             
 
                 
@@ -200,17 +201,19 @@ def PitchStock(strategy, data, time):
         """
         ranking = {}
         for i in ticker:
-            ranking[i] = strategy(data[i], cycle, time)
-        return ranking
-        # result = sorted(ranking, key = ranking.get)[:20]
-        # return result
+            ranking[i] = strategy(data[i], 20, time)
+        result = sorted(ranking, key = ranking.get)[:20]
+        return result
 
 # %%
 # testing environment
-wsw = Agent({'cash': INITIAL_BALANCE}, test_data, strategies, 20)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies[3:4], 20)
 
 # %%
 ranking = wsw.PitchStock(strategies[0], 80)
 wsw.Trading(ranking, 80)
+
+# %%
+wsw.BackTesting()
 
 # %%
