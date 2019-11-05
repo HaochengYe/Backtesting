@@ -98,6 +98,9 @@ class Agent():
         self.balance = balance
         self.data = data
         self.strategies = strategies
+        self.equity = balance['cash']
+        self.re = float()
+        self.tran_cost = float()
 
 
     def PitchStock(self, strategy, time):
@@ -119,21 +122,37 @@ class Agent():
                 record: dictionary (accounting book for holdings)
         returns nothing but changes the balance and record of the Agent
         """
+        # take all necessary attributes from the class
+        cost = 0
+        equity = self.equity
         data = self.data
         balance = self.balance
         avail_cash = balance['cash']
+
         for i in ranking:
             if i not in balance:
                 num_to_buy = (INITIAL_BALANCE / MAX_HOLDING_NUM) // data[i][time]
                 balance[i] = num_to_buy
-                avail_cash -= num_to_buy * data[i][time]
+                change = num_to_buy * data[i][time]
+                cost += num_to_buy * TRANS_COST
+                avail_cash -= change
+                equity += change
         for i in list(balance):
             if i not in ranking and i != 'cash':
                 num_to_sell = balance[i]
                 del balance[i]
-                avail_cash += num_to_sell * data[i][time]
+                change = num_to_sell * data[i][time]
+                cost += num_to_sell * TRANS_COST
+                avail_cash += change
+                equity -= change
+
+        # reassign values to the class attributes
         balance['cash'] = avail_cash
         self.balance = balance
+        equity = equity + avail_cash - cost
+        self.re = equity / self.equity
+        self.equity = equity
+        self.cost += cost
         
         
     def BackTesting(self):
