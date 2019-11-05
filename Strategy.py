@@ -11,10 +11,13 @@ df.drop(['Unnamed: 0'], axis = 1, inplace=True)
 print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
-cycle = 20
+
 INITIAL_BALANCE = 1e4
 MAX_HOLDING_NUM = 20
 TRANS_COST = 0.01
+# define the risk-free rate
+RISKFREE = 1.05
+
 
 # %%
 def PriceReverse(df, cycle, time):
@@ -87,7 +90,7 @@ strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
 
 # %%
 class Agent():
-    def __init__(self, balance, data, strategies):
+    def __init__(self, balance, data, strategies, cycle):
         """
         Balance: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -98,9 +101,11 @@ class Agent():
         self.balance = balance
         self.data = data
         self.strategies = strategies
-        self.equity = balance['cash']
+        self.cycle = cycle
+        self.equity = float()
         self.re = float()
         self.tran_cost = float()
+        self.rf = np.power(RISKFREE, self.cycle/252)
 
 
     def PitchStock(self, strategy, time):
@@ -108,6 +113,7 @@ class Agent():
         Argument strategy: a function that takes (df, cycle, time) as argument
         return ranking: dictionary {Stock: Value} Value is some metric
         """
+        cycle = self.cycle
         data = self.data
         ranking = {}
         for i in ticker:
@@ -127,8 +133,9 @@ class Agent():
         equity = self.equity
         data = self.data
         balance = self.balance
-        avail_cash = balance['cash']
-
+        rf = self.rf
+        avail_cash = balance['cash'] * rf
+        # buying
         for i in ranking:
             if i not in balance:
                 num_to_buy = (INITIAL_BALANCE / MAX_HOLDING_NUM) // data[i][time]
@@ -137,6 +144,7 @@ class Agent():
                 cost += num_to_buy * TRANS_COST
                 avail_cash -= change
                 equity += change
+        # selling
         for i in list(balance):
             if i not in ranking and i != 'cash':
                 num_to_sell = balance[i]
@@ -145,21 +153,22 @@ class Agent():
                 cost += num_to_sell * TRANS_COST
                 avail_cash += change
                 equity -= change
-
         # reassign values to the class attributes
         balance['cash'] = avail_cash
         self.balance = balance
         equity = equity + avail_cash - cost
         self.re = equity / self.equity
         self.equity = equity
-        self.cost += cost
+        self.tran_cost += cost
         
         
     def BackTesting(self):
         """
         Return a dictionary {Strat1: Return, Strat2: Return...}
         """
-        T = len(self.data) // cycle
+        cycle = self.cycle
+        data = self.data
+        T = data // cycle
         
 
 # %%
@@ -178,5 +187,9 @@ def PitchStock(strategy, data, time):
 # %%
 # testing environment
 wsw = Agent({'cash': INITIAL_BALANCE}, test_data, strategies)
-ranking = wsw.PitchStock(strategies[0], 40)
-wsw.Trading(ranking, 40)
+
+# %%
+ranking = wsw.PitchStock(strategies[0], 80)
+wsw.Trading(ranking, 80)
+
+# %%
