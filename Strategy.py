@@ -13,7 +13,6 @@ ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
 INITIAL_BALANCE = 14612
-MAX_HOLDING_NUM = 10
 TRANS_COST = 0.03
 # define the risk-free rate
 RISKFREE = 1.05
@@ -23,6 +22,7 @@ RISKFREE = 1.05
 def PriceReverse(df, cycle, time):
     """ Compute 1M Price Reversal as the following:
         PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
+        Order: Ascending
     Argument df: dataframe object (n*1 vector)
             cycle: how many days to look back to see its reversal
             time: current index for df to look at
@@ -37,6 +37,7 @@ def Price_High_Low(df, cycle, time):
     """
     Compute High-minus-low:
     HL_{i,t} = (High_{i,t} - Close_{i,t}) / (Close_{i,t} - Low_{i,t})
+    Order: Descending
     Argument df: dataframe object (n*1 vector)
             cycle: how many days to look back to see its reversal
             time: current index for df to look at
@@ -44,7 +45,7 @@ def Price_High_Low(df, cycle, time):
     try:
         High = max(df.iloc[time-cycle:time])
         Low = min(df.iloc[time-cycle:time])
-        return (High - df.iloc[time]) / (df.iloc[time] - Low)
+        return -(High - df.iloc[time]) / (df.iloc[time] - Low)
     except KeyError:
         return None
 
@@ -52,6 +53,7 @@ def Vol_Coefficient(df, cycle, time):
     """
     Compute Coefficient of Variation:
     CV_{i,t} = Std(Close_i, cycle) / Ave(Close_i, cycle)
+    Order: Descending
         Argument df: dataframe object (n*1 vector)
             cycle: how many days to look back to see its reversal
             time: current index for df to look at
@@ -59,7 +61,7 @@ def Vol_Coefficient(df, cycle, time):
     try:
         std = np.std(df.iloc[time-cycle:time])
         avg = np.mean(df.iloc[time-cycle:time])
-        return std / avg
+        return -std / avg
     except KeyError:
         return None
 
@@ -68,6 +70,7 @@ def AnnVol(df, cycle, time):
     Compute Coefficient of Variation:
     AnnVol = sqrt(252) * sqrt(1/21 * sum(r_{i,t-j}^2))
     where r_{i,s} = log(Close_{i,t} / Close_{i,t-1})
+    Order: Descending
         Argument df: dataframe object (n*1 vector)
             cycle: how many days to look back to see its reversal
             time: current index for df to look at
@@ -78,7 +81,7 @@ def AnnVol(df, cycle, time):
             log = np.log(df.iloc[time-i] / df.iloc[time-i-1])
             r_2 += log**2
         result = np.sqrt(252/cycle * r_2)
-        return result
+        return -result
     except KeyError:
         return None
 
@@ -87,7 +90,7 @@ strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
 
 # %%
 class Agent():
-    def __init__(self, balance, data, strategies, cycle):
+    def __init__(self, balance, data, strategies, cycle, max_holding):
         """
         Balance: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -103,6 +106,7 @@ class Agent():
         self.re = float()
         self.tran_cost = float()
         self.rf = np.power(RISKFREE, self.cycle/252)
+        self.max_holding = max_holding
 
 
     def PitchStock(self, strategy, time):
@@ -112,10 +116,11 @@ class Agent():
         """
         cycle = self.cycle
         data = self.data
+        max_holding = self.max_holding
         ranking = {}
         for i in ticker:
             ranking[i] = strategy(data[i], cycle, time)
-        result = sorted(ranking, key = ranking.get)[:20]
+        result = sorted(ranking, key = ranking.get)[:max_holding]
         return result
             
 
@@ -131,13 +136,14 @@ class Agent():
         data = self.data
         balance = self.balance
         rf = self.rf
+        max_holding = self.max_holding
         avail_cash = balance['cash'] * rf
         # buying
         for i in ranking:
             if i not in balance:
-                num_to_buy = (equity / MAX_HOLDING_NUM) // data[i][time]
+                num_to_buy = (equity / max_holding) // data[i].iloc[time]
                 balance[i] = num_to_buy
-                change = num_to_buy * data[i][time]
+                change = num_to_buy * data[i].iloc[time]
                 cost += num_to_buy * TRANS_COST
                 avail_cash -= change
 
@@ -146,7 +152,7 @@ class Agent():
             if i not in ranking and i != 'cash':
                 num_to_sell = balance[i]
                 del balance[i]
-                change = num_to_sell * data[i][time]
+                change = num_to_sell * data[i].iloc[time]
                 cost += num_to_sell * TRANS_COST
                 avail_cash += change
 
@@ -242,12 +248,11 @@ def PitchStock(strategy, data, time):
         #return result
 
 # %%
-# testing environment
-wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies, 20)
+wsw = Agent({'cash': INITIAL_BALANCE}, df[1000:], strategies, 20, 10)
 
 # %%
-ranking = wsw.PitchStock(strategies[0], 80)
-wsw.Trading(ranking, 80)
+ranking = wsw.PitchStock(strategies[0], 2476)
+wsw.Trading(ranking, 2476)
 
 # %%
 wsw.BackTesting()
