@@ -82,10 +82,7 @@ def AnnVol(df, cycle, time):
 strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
 
 # %%
-test = test[ticker[:2]][:50]
-ranking = {}
-for i in ticker[:2]:
-    ranking[i] = strategies[0](test[i], 20, 40)
+
 
 
 # %%
@@ -103,25 +100,26 @@ class Agent():
         self.strategies = strategies
 
 
-    def PitchStock(self, strategy, data, time):
+    def PitchStock(self, strategy, time):
         """
         Argument strategy: a function that takes (df, cycle, time) as argument
         return ranking: dictionary {Stock: Value} Value is some metric
         """
+        data = self.data
         ranking = {}
         for i in ticker:
-            ranking[i] = strategy(data, cycle, time)
-
+            ranking[i] = strategy(data[i], cycle, time)
         result = sorted(ranking, key = ranking.get)[:20]
         return result
             
 
-    def Trading(self, ranking, data, time):
+    def Trading(self, ranking, time):
         """
-        Argument ranking: dictionary {Stock: Value} Value is some metric
+        Argument ranking: list of stocks
                 record: dictionary (accounting book for holdings)
         returns nothing but changes the balance and record of the Agent
         """
+        data = self.data
         balance = self.balance
         avail_cash = balance['cash']
         for i in ranking:
@@ -129,21 +127,32 @@ class Agent():
                 num_to_buy = (INITIAL_BALANCE / MAX_HOLDING_NUM) // data[i][time]
                 balance[i] = num_to_buy
                 avail_cash -= num_to_buy * data[i][time]
-        for i in balance:
-            if i not in ranking:
+        for i in list(balance):
+            if i not in ranking and i != 'cash':
                 num_to_sell = balance[i]
                 del balance[i]
                 avail_cash += num_to_sell * data[i][time]
         balance['cash'] = avail_cash
         self.balance = balance
         
-
-
     def BackTesting(self):
         """
         Return a dictionary {Strat1: Return, Strat2: Return...}
         """
         T = len(self.data) // cycle
         
+
+# %%
+def PitchStock(strategy, data, time):
+        """
+        Argument strategy: a function that takes (df, cycle, time) as argument
+        return ranking: dictionary {Stock: Value} Value is some metric
+        """
+        ranking = {}
+        for i in ticker:
+            ranking[i] = strategy(data[i], cycle, time)
+        return ranking
+        # result = sorted(ranking, key = ranking.get)[:20]
+        # return result
 
 # %%
