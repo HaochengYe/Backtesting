@@ -12,9 +12,9 @@ print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
-INITIAL_BALANCE = 1e4
-MAX_HOLDING_NUM = 20
-TRANS_COST = 0.01
+INITIAL_BALANCE = 14612
+MAX_HOLDING_NUM = 10
+TRANS_COST = 0.03
 # define the risk-free rate
 RISKFREE = 1.05
 
@@ -28,8 +28,8 @@ def PriceReverse(df, cycle, time):
             time: current index for df to look at
     """
     try:
-        previous_price = df.loc[time - cycle]
-        return (df.loc[time] - previous_price) / previous_price
+        previous_price = df.iloc[time - cycle]
+        return (df.iloc[time] - previous_price) / previous_price
     except KeyError:
         return None
 
@@ -42,9 +42,9 @@ def Price_High_Low(df, cycle, time):
             time: current index for df to look at
     """
     try:
-        High = max(df.loc[time-cycle:time])
-        Low = min(df.loc[time-cycle:time])
-        return (High - df.loc[time]) / (df.loc[time] - Low)
+        High = max(df.iloc[time-cycle:time])
+        Low = min(df.iloc[time-cycle:time])
+        return (High - df.iloc[time]) / (df.iloc[time] - Low)
     except KeyError:
         return None
 
@@ -57,8 +57,8 @@ def Vol_Coefficient(df, cycle, time):
             time: current index for df to look at
     """
     try:
-        std = np.std(df.loc[time-cycle:time])
-        avg = np.mean(df.loc[time-cycle:time])
+        std = np.std(df.iloc[time-cycle:time])
+        avg = np.mean(df.iloc[time-cycle:time])
         return std / avg
     except KeyError:
         return None
@@ -75,7 +75,7 @@ def AnnVol(df, cycle, time):
     try:
         r_2 = int(0)
         for i in range(1, cycle):
-            log = np.log(df.loc[time-i] / df.loc[time-i-1])
+            log = np.log(df.iloc[time-i] / df.iloc[time-i-1])
             r_2 += log**2
         result = np.sqrt(252/cycle * r_2)
         return result
@@ -237,8 +237,9 @@ def PitchStock(strategy, data, time):
         ranking = {}
         for i in ticker:
             ranking[i] = strategy(data[i], 20, time)
-        result = sorted(ranking, key = ranking.get)[:20]
-        return result
+        return ranking
+        #result = sorted(ranking, key = ranking.get)[:20]
+        #return result
 
 # %%
 # testing environment
