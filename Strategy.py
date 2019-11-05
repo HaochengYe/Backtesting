@@ -248,7 +248,7 @@ def PitchStock(strategy, data, time):
         #return result
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df[1000:], strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df[2000:], strategies, 20, 10)
 
 # %%
 ranking = wsw.PitchStock(strategies[0], 2476)
