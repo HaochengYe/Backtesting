@@ -13,9 +13,9 @@ ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
 INITIAL_BALANCE = 14612
-TRANS_COST = 0.03
+TRANS_COST = 0.01
 # define the risk-free rate
-RISKFREE = 1.05
+RISKFREE = 1.02
 
 
 # %%
