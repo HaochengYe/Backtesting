@@ -11,7 +11,7 @@ df.drop(['Unnamed: 0'], axis = 1, inplace=True)
 print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
-REBALANCE_PERIOD = 20
+cycle = 20
 INITIAL_BALANCE = 1e4
 MAX_HOLDING_NUM = 20
 TRANS_COST = 0.01
@@ -99,8 +99,6 @@ class Agent():
         Strategies is which factor investing stratgy this Agent has in disposal
         """
         self.balance = balance
-        self.max_holding = max_holding
-        self.cycle = cycle
         self.data = data
         self.strategies = strategies
 
@@ -111,10 +109,11 @@ class Agent():
         return ranking: dictionary {Stock: Value} Value is some metric
         """
         ranking = {}
-        cycle = self.cycle
         for i in ticker:
             ranking[i] = strategy(data, cycle, time)
-        return sorted(ranking, key = ranking.get)[:20]
+
+        result = sorted(ranking, key = ranking.get)[:20]
+        return result
             
 
     def Trading(self, ranking, data, time):
@@ -144,10 +143,7 @@ class Agent():
         """
         Return a dictionary {Strat1: Return, Strat2: Return...}
         """
-        T = len(self.data) // self.cycle
+        T = len(self.data) // cycle
         
-
-    
-
 
 # %%
