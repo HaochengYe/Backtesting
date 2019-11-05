@@ -135,6 +135,7 @@ class Agent():
         balance['cash'] = avail_cash
         self.balance = balance
         
+        
     def BackTesting(self):
         """
         Return a dictionary {Strat1: Return, Strat2: Return...}
@@ -156,3 +157,7 @@ def PitchStock(strategy, data, time):
         # return result
 
 # %%
+# testing environment
+wsw = Agent({'cash': INITIAL_BALANCE}, test_data, strategies)
+ranking = wsw.PitchStock(strategies[0], 40)
+wsw.Trading(ranking, 40)
