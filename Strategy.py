@@ -161,7 +161,10 @@ class Agent():
         
     def BackTesting(self):
         """
-        Return a dictionary {Strat1: Return, Strat2: Return...}
+        This is backtsting for all strategies
+        Return two dictionary
+            1. return for each strategy
+            2. overall cost for each strategy
         """
         cycle = self.cycle
         data = self.data
@@ -172,26 +175,58 @@ class Agent():
             print("     %s" % i.__name__)
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
-        portfolio_value = {}
+        portfolio_return = {}
         portfolio_cost = {}
         for strategy in strategies:
             print("Testing %s" % strategy.__name__)
-            value_ts = []
-            cost_ts = []
             for i in range(1, T):
                 time = i * cycle
                 ranking = self.PitchStock(strategy, time)
                 self.Trading(ranking, time)
-                value_ts.append(self.equity)
-                cost_ts.append(self.tran_cost)
                 print("Rebalancing for %s time!" % i)
-            portfolio_value[strategy.__name__] = value_ts
-            portfolio_cost[strategy.__name__] = cost_ts    
-        return portfolio_value, portfolio_cost
+            # compute the annualized return for this strategy
+            result = np.power(self.re, 252 // cycle / T)
+            portfolio_return[strategy.__name__] = (result - 1)*100
+            portfolio_cost[strategy.__name__] = self.tran_cost
+            # reset balance, equity, re, and transaction cost for the agent
+            self.reset()  
+        return portfolio_return, portfolio_cost
+    
+
+    def BackTesting_Single(self, strategy):
+        """
+        This is backtsting for one single strategy
+        Return two dictionary
+            1. value path
+            2. transaction cost path
+        """
+        cycle = self.cycle
+        data = self.data
+        print("Testing %s" % strategy.__name__)
+        T = len(data) // cycle
+        print("We are rebalancing for %s number of times." % T)
+        portfolio_return = []
+        portfolio_cost = []
+        for i in range(1, T):
+            time = i * cycle
+            ranking = self.PitchStock(strategy, time)
+            self.Trading(ranking, time)
+            print("Rebalancing for %s time!" % i)
+            portfolio_return.append(self.equity)
+            portfolio_cost.append(self.tran_cost)
+        return portfolio_return, portfolio_cost
+
+    
+    def reset(self):
+        """
+        This reset the Agent to its initial holding. 
+        Apply this method between testing different strategies.
+        """
+        self.balance = {'cash': INITIAL_BALANCE}
+        self.equity = INITIAL_BALANCE
+        self.re = float()
+        self.tran_cost = float()
             
-
-                
-
 
 # %%
 def PitchStock(strategy, data, time):
@@ -207,7 +242,7 @@ def PitchStock(strategy, data, time):
 
 # %%
 # testing environment
-wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies[3:4], 20)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies, 20)
 
 # %%
 ranking = wsw.PitchStock(strategies[0], 80)
