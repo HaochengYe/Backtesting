@@ -84,9 +84,6 @@ def AnnVol(df, cycle, time):
 
 strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
 
-# %%
-
-
 
 # %%
 class Agent():
@@ -102,7 +99,7 @@ class Agent():
         self.data = data
         self.strategies = strategies
         self.cycle = cycle
-        self.equity = float()
+        self.equity = INITIAL_BALANCE
         self.re = float()
         self.tran_cost = float()
         self.rf = np.power(RISKFREE, self.cycle/252)
@@ -138,12 +135,12 @@ class Agent():
         # buying
         for i in ranking:
             if i not in balance:
-                num_to_buy = (INITIAL_BALANCE / MAX_HOLDING_NUM) // data[i][time]
+                num_to_buy = (equity / MAX_HOLDING_NUM) // data[i][time]
                 balance[i] = num_to_buy
                 change = num_to_buy * data[i][time]
                 cost += num_to_buy * TRANS_COST
                 avail_cash -= change
-                equity += change
+
         # selling
         for i in list(balance):
             if i not in ranking and i != 'cash':
@@ -152,12 +149,12 @@ class Agent():
                 change = num_to_sell * data[i][time]
                 cost += num_to_sell * TRANS_COST
                 avail_cash += change
-                equity -= change
+
         # reassign values to the class attributes
         balance['cash'] = avail_cash
         self.balance = balance
         equity = equity + avail_cash - cost
-        self.re = equity / self.equity
+        self.re = equity / INITIAL_BALANCE
         self.equity = equity
         self.tran_cost += cost
         
@@ -168,8 +165,32 @@ class Agent():
         """
         cycle = self.cycle
         data = self.data
-        T = data // cycle
-        
+        strategies = self.strategies
+        print("There are %s strategies we are testing." % len(strategies))
+        print("They are: ")
+        for i in strategies:
+            print("     %s" % i.__name__)
+        T = len(data) // cycle
+        print("We are rebalancing for %s number of times." % T)
+        portfolio_value = {}
+        portfolio_cost = {}
+        for strategy in strategies:
+            print("Testing %s" % strategy.__name__)
+            value_ts = []
+            cost_ts = []
+            for i in range(1, T):
+                time = i * cycle
+                ranking = self.PitchStock(strategy, time)
+                self.Trading(ranking, time)
+                value_ts.append(self.equity)
+                cost_ts.append(self.tran_cost)
+                print("Rebalancing for %s time!" % i)
+            portfolio_value[strategy.__name__] = value_ts
+            portfolio_cost[strategy.__name__] = cost_ts    
+            
+
+                
+
 
 # %%
 def PitchStock(strategy, data, time):
@@ -186,7 +207,7 @@ def PitchStock(strategy, data, time):
 
 # %%
 # testing environment
-wsw = Agent({'cash': INITIAL_BALANCE}, test_data, strategies)
+wsw = Agent({'cash': INITIAL_BALANCE}, test_data, strategies, 20)
 
 # %%
 ranking = wsw.PitchStock(strategies[0], 80)
