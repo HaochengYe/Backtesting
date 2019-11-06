@@ -196,6 +196,7 @@ class Agent():
             portfolio_cost[strategy.__name__] = self.tran_cost
             # reset balance, equity, re, and transaction cost for the agent
             self.reset()  
+            print("\n")
         return portfolio_return, portfolio_cost
     
 
@@ -248,7 +249,7 @@ def PitchStock(strategy, data, time):
         #return result
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df[1250:], strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df[1250:], strategies, 5, 20)
 
 # %%
 ranking = wsw.PitchStock(strategies[0], 2476)
