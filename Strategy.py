@@ -107,6 +107,7 @@ class Agent():
         self.tran_cost = float()
         self.rf = np.power(RISKFREE, self.cycle/252)
         self.max_holding = max_holding
+        self.vol = float()
 
 
     def PitchStock(self, strategy, time):
@@ -122,12 +123,20 @@ class Agent():
             ranking[i] = strategy(data[i], cycle, time)
         result = sorted(ranking, key = ranking.get)[:max_holding]
         return result
+
+    def MeanVarWeight(self, ranking, time):
+        """
+        Argument ranking: list of stocks from PitchStock
+                    return dictionary {Stock: Shares to buy}
+        """
+        cycle = self.cycle
+        data = self.data
+        
             
 
     def Trading(self, ranking, time):
         """
         Argument ranking: list of stocks
-                record: dictionary (accounting book for holdings)
         returns nothing but changes the balance and record of the Agent
         """
         # take all necessary attributes from the class
@@ -181,8 +190,7 @@ class Agent():
             print("     %s" % i.__name__)
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
-        portfolio_return = {}
-        portfolio_cost = {}
+        portfolio_perform = {}
         for strategy in strategies:
             print("Testing %s" % strategy.__name__)
             for i in range(1, T):
@@ -192,12 +200,11 @@ class Agent():
                 print("Rebalancing for %s time!" % i)
             # compute the annualized return for this strategy
             result = np.power(self.re, 252 // cycle / T)
-            portfolio_return[strategy.__name__] = (result - 1)*100
-            portfolio_cost[strategy.__name__] = self.tran_cost
+            portfolio_perform[strategy.__name__] = (result - 1)*100
             # reset balance, equity, re, and transaction cost for the agent
             self.reset()  
             print("\n")
-        return portfolio_return, portfolio_cost
+        return portfolio_perform
     
 
     def BackTesting_Single(self, strategy):
@@ -233,6 +240,7 @@ class Agent():
         self.equity = INITIAL_BALANCE
         self.re = float()
         self.tran_cost = float()
+        self.vol = float()
             
 
 # %%
