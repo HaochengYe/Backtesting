@@ -131,6 +131,10 @@ class Agent():
         """
         cycle = self.cycle
         data = self.data
+        covar = np.zeros((shape = ))
+        for i in ranking:
+            path = data[i].iloc[time+1-cycle:time+1]
+        covar = np.concatenate((covar, path), axis = 1)
         
             
 
@@ -220,15 +224,13 @@ class Agent():
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
         portfolio_return = []
-        portfolio_cost = []
         for i in range(1, T):
             time = i * cycle
             ranking = self.PitchStock(strategy, time)
             self.Trading(ranking, time)
             print("Rebalancing for %s time!" % i)
             portfolio_return.append(self.equity)
-            portfolio_cost.append(self.tran_cost)
-        return portfolio_return, portfolio_cost
+        return portfolio_return
 
     
     def reset(self):
