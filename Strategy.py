@@ -131,12 +131,14 @@ class Agent():
         """
         cycle = self.cycle
         data = self.data
-        covar = np.zeros((shape = ))
-        for i in ranking:
-            path = data[i].iloc[time+1-cycle:time+1]
-        covar = np.concatenate((covar, path), axis = 1)
+        covar = np.zeros(shape = (len(ranking), cycle))
+        for i in range(len(ranking)):
+            covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+        inv_cov_matrix = np.linalg.inv(np.cov(covar))
+        ita = np.ones(inv_cov_matrix.shape[0])
+        weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
+        return weight
         
-            
 
     def Trading(self, ranking, time):
         """
@@ -246,23 +248,26 @@ class Agent():
             
 
 # %%
-def PitchStock(strategy, data, time):
-        """
-        Argument strategy: a function that takes (df, cycle, time) as argument
-        return ranking: dictionary {Stock: Value} Value is some metric
-        """
-        ranking = {}
-        for i in ticker:
-            ranking[i] = strategy(data[i], 20, time)
-        return ranking
-        #result = sorted(ranking, key = ranking.get)[:20]
-        #return result
+def MeanVarWeight(ranking, time):
+    """
+    Argument ranking: list of stocks from PitchStock
+                return dictionary {Stock: Shares to buy}
+    """
+    cycle = 20
+    data = df
+    covar = np.zeros(shape = (len(ranking), cycle))
+    for i in range(len(ranking)):
+        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+    inv_cov_matrix = np.linalg.inv(np.cov(covar))
+    ita = np.ones(inv_cov_matrix.shape[0])
+    weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
+    return weight
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df[1250:], strategies, 5, 20)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies, 20, 20)
 
 # %%
-ranking = wsw.PitchStock(strategies[0], 2476)
+ranking = wsw.PitchStock(strategies[0], 2000)
 wsw.Trading(ranking, 2476)
 
 # %%
