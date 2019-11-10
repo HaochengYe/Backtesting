@@ -186,34 +186,23 @@ class Agent():
             1. return for each strategy
             2. overall cost for each strategy
         """
-        cycle = self.cycle
-        data = self.data
         strategies = self.strategies
         print("There are %s strategies we are testing." % len(strategies))
         print("They are: ")
         for i in strategies:
             print("     %s" % i.__name__)
-        T = len(data) // cycle
-        print("We are rebalancing for %s number of times." % T)
         portfolio_perform = {}
         for strategy in strategies:
-            print("Testing %s" % strategy.__name__)
-            re_path = []
-            for i in range(1, T):
-                time = i * cycle
-                ranking = self.PitchStock(strategy, time)
-                self.Trading(ranking, time)
-                print("Rebalancing for %s time!" % i)
-                re_path.append(self.re)
-            # compute the annualized return for this strategy
-            vol = np.std(re_path)
-            result = (np.power(self.re, 252 // cycle / T) - 1)*100
-            sharpe = (result - (RISKFREE - 1)*100) / vol
-            portfolio_perform[strategy.__name__] = [result, vol, sharpe]
+            # use BackTesting_Single to get the three value of metrics needed
+            total_return, vol, sharpe = self.BackTesting_Single(strategy)
+            portfolio_perform[strategy.__name__] = [total_return, vol, sharpe]
             # reset balance, equity, re, and transaction cost for the agent
             self.reset()  
             print("\n")
-        return portfolio_perform
+        # turn this dictionary into a nicely presentable dataframe
+        table = pd.DataFrame.from_dict(portfolio_perform, orient='index')
+        table.columns = ['Annualized Return', 'Volatility', 'Sharpe Ratio']
+        return table
     
 
     def BackTesting_Single(self, strategy):
@@ -236,7 +225,7 @@ class Agent():
         vol = np.std(portfolio_re)
         total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
         sharpe = (total_return - (RISKFREE - 1)*100) / vol
-        return [total_return , vol, sharpe]
+        return total_return , vol, sharpe
 
     
     def reset(self):
