@@ -107,7 +107,6 @@ class Agent():
         self.tran_cost = float()
         self.rf = np.power(RISKFREE, self.cycle/252)
         self.max_holding = max_holding
-        self.vol = float()
 
 
     def PitchStock(self, strategy, time):
@@ -199,14 +198,18 @@ class Agent():
         portfolio_perform = {}
         for strategy in strategies:
             print("Testing %s" % strategy.__name__)
+            re_path = []
             for i in range(1, T):
                 time = i * cycle
                 ranking = self.PitchStock(strategy, time)
                 self.Trading(ranking, time)
                 print("Rebalancing for %s time!" % i)
+                re_path.append(self.re)
             # compute the annualized return for this strategy
-            result = np.power(self.re, 252 // cycle / T)
-            portfolio_perform[strategy.__name__] = (result - 1)*100
+            vol = np.std(re_path)
+            result = (np.power(self.re, 252 // cycle / T) - 1)*100
+            sharpe = (result - (RISKFREE - 1)*100) / vol
+            portfolio_perform[strategy.__name__] = [result, vol, sharpe]
             # reset balance, equity, re, and transaction cost for the agent
             self.reset()  
             print("\n")
@@ -216,23 +219,24 @@ class Agent():
     def BackTesting_Single(self, strategy):
         """
         This is backtsting for one single strategy
-        Return two dictionary
-            1. value path
-            2. transaction cost path
+        Return the total return, volatility and Sharpe ratio
         """
         cycle = self.cycle
         data = self.data
         print("Testing %s" % strategy.__name__)
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
-        portfolio_return = []
+        portfolio_re = []
         for i in range(1, T):
             time = i * cycle
             ranking = self.PitchStock(strategy, time)
             self.Trading(ranking, time)
             print("Rebalancing for %s time!" % i)
-            portfolio_return.append(self.equity)
-        return portfolio_return
+            portfolio_re.append(self.re)
+        vol = np.std(portfolio_re)
+        total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
+        sharpe = (total_return - (RISKFREE - 1)*100) / vol
+        return [total_return , vol, sharpe]
 
     
     def reset(self):
@@ -244,7 +248,6 @@ class Agent():
         self.equity = INITIAL_BALANCE
         self.re = float()
         self.tran_cost = float()
-        self.vol = float()
             
 
 # %%
@@ -272,5 +275,8 @@ wsw.Trading(ranking, 2476)
 
 # %%
 wsw.BackTesting()
+
+# %%
+wsw.BackTesting_Single(PriceReverse)
 
 # %%
