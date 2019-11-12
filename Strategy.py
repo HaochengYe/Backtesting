@@ -14,7 +14,7 @@ ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
 INITIAL_BALANCE = 24628
-TRANS_COST = 0.00
+TRANS_COST = 0.05
 # define the risk-free rate
 RISKFREE = 1.02
 
@@ -210,7 +210,7 @@ class Agent():
         equity = self.get_Equity(time) + cash * (self.rf - 1)
         target_portfolio = {}
         weight = np.array(rebalance_strategy(data, ranking, time, cycle))
-        weight = int(weight * equity)
+        weight = (weight * equity).astype(int)
         for w, stock in zip(weight, ranking):
             price = data[stock].iloc[time]
             shares = w // price
@@ -228,7 +228,8 @@ class Agent():
         data = self.data
         portfolio = self.portfolio
         cash = portfolio['cash']
-        ticker = list(portfolio)[1:]
+        ticker = list(portfolio)
+        ticker.remove('cash')
         total_equity = cash
         for stock in ticker:
             price = data[stock].iloc[time]
@@ -249,7 +250,6 @@ class Agent():
         # selling and adjust share
         for i in list(portfolio):
             if i not in target_portfolio and i != 'cash':
-                del portfolio[i]
                 cost += portfolio[i] * TRANS_COST
             elif i in target_portfolio and i != 'cash':
                 diff = abs(portfolio[i] - target_portfolio[i])
@@ -261,7 +261,7 @@ class Agent():
         # update all the attribute of the agent
         self.tran_cost += cost
         self.portfolio = target_portfolio
-        self.equity = self.get_Equity(time)
+        self.equity = self.get_Equity(time) - cost
         self.re = self.equity / INITIAL_BALANCE
         
             
@@ -338,13 +338,14 @@ class Agent():
 wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalance_strategies, 20, 10)
 
 # %%
-ranking = wsw.PitchStock(trading_strategies[0], 2000)
-wsw.Trading(ranking, 2480)
+ranking = wsw.PitchStock(trading_strategies[0], 20)
+target = wsw.Rebalancing(ranking, rebalance_strategies[3], 20)
+wsw.Trading(target, 20)
 
 # %%
 wsw.BackTesting()
 
 # %%
-wsw.BackTesting_Single(PriceReverse)
+wsw.BackTesting_Single(PriceReverse, RiskParity)
 
 # %%
