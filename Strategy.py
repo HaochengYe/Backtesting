@@ -182,19 +182,31 @@ class Agent():
         self.max_holding = max_holding
 
 
-    def PitchStock(self, strategy, time):
+    def PitchStock(self, trading_strategy, time):
         """
-        Argument strategy: a function that takes (df, cycle, time) as argument
-        return ranking: dictionary {Stock: Value} Value is some metric
+        Argument trading_strategy: a function that takes (df, cycle, time) as argument
+        return ranking: list of stocks that should invest
         """
         cycle = self.cycle
         data = self.data
         max_holding = self.max_holding
         ranking = {}
         for i in ticker:
-            ranking[i] = strategy(data[i], cycle, time)
+            ranking[i] = trading_strategy(data[i], cycle, time)
         result = sorted(ranking, key = ranking.get)[:max_holding]
         return result
+
+    def Rebalancing(self, ranking, rebalance_strategy, time):
+        """
+        Argument ranking: result from Agent.PitchStock
+                rebalance_strategy: a function that takes (df, ranking, time, cycle) as argument
+                return target_portfolio: dictionary {Stock: # of shares}
+        """
+        cycle = self.cycle
+        data = self.data
+        max_holding = self.max_holding
+        target_portfolio = {}
+        weight = 
         
 
     def Trading(self, ranking, time):
