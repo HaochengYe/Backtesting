@@ -158,11 +158,11 @@ def RiskParity(data, ranking, time, cycle):
     return weight    
 
 
-rebalance_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
 
 # %%
 class Agent():
-    def __init__(self, portfolio, data, trade_strategies, rebalance_strategies, cycle, max_holding):
+    def __init__(self, portfolio, data, trade_strategies, rebalancing_strategies, cycle, max_holding):
         """
         portfolio: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -173,7 +173,7 @@ class Agent():
         self.portfolio = portfolio
         self.data = data
         self.trade_strategies = trade_strategies
-        self.rebalance_strategies = rebalance_strategies
+        self.rebalancing_strategies = rebalancing_strategies
         self.cycle = cycle
         self.equity = INITIAL_BALANCE
         self.re = float()
@@ -197,10 +197,10 @@ class Agent():
         return result
 
 
-    def Rebalancing(self, ranking, rebalance_strategy, time):
+    def Rebalancing(self, ranking, rebalancing_strategy, time):
         """
         Argument ranking: result from Agent.PitchStock
-                rebalance_strategy: a function that takes (df, ranking, time, cycle) as argument
+                rebalancing_strategy: a function that takes (df, ranking, time, cycle) as argument
                 return target_portfolio: dictionary {Stock: # of shares}
         """
         cycle = self.cycle
@@ -209,7 +209,7 @@ class Agent():
         # assume that cash earns risk-free rate interest
         equity = self.get_Equity(time) + cash * (self.rf - 1)
         target_portfolio = {}
-        weight = np.array(rebalance_strategy(data, ranking, time, cycle))
+        weight = np.array(rebalancing_strategy(data, ranking, time, cycle))
         weight = (weight * equity).astype(int)
         for w, stock in zip(weight, ranking):
             price = data[stock].iloc[time]
@@ -273,7 +273,7 @@ class Agent():
             2. overall cost for each strategy
         """
         trading_strategies = self.trading_strategies
-        rebalancing_strategies = self.rebalance_strategies
+        rebalancing_strategies = self.rebalancing_strategies
         print("There are %s trading strategies and %s rebalancing strategies we are testing." % (len(trading_strategies), len(rebalancing_strategies)))
         print("They are: ")
         for i in trading_strategies:
@@ -281,10 +281,14 @@ class Agent():
         print('\n')
         for i in rebalancing_strategies:
             print("     %s" % i.__name__)
-        portfolio_perform = {}
-        for strategy in strategies:
-            # use BackTesting_Single to get the three value of metrics needed
-            total_return, vol, sharpe = self.BackTesting_Single(strategy)
+        portfolio_re = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
+        portfolio_vol = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
+        portfolio_sharpe = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
+        for trading_strategy in trading_strategies:
+            for rebalancing_strategy in rebalancing_strategies:
+                # use BackTesting_Single to get the three value of metrics needed
+                total_return, vol, sharpe = self.BackTesting_Single(trading_strategy, rebalancing_strategy)
+
             portfolio_perform[strategy.__name__] = [total_return, vol, sharpe]
             # reset balance, equity, re, and transaction cost for the agent
             self.reset()
@@ -320,6 +324,7 @@ class Agent():
         sharpe = (total_return - (self.rf - 1)*100) / vol
         return total_return , vol, sharpe
 
+
     def reset(self):
         """
         This reset the Agent to its initial holding. 
@@ -335,17 +340,17 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalance_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, 20, 10)
 
 # %%
 ranking = wsw.PitchStock(trading_strategies[0], 20)
-target = wsw.Rebalancing(ranking, rebalance_strategies[3], 20)
+target = wsw.Rebalancing(ranking, rebalancing_strategies[3], 20)
 wsw.Trading(target, 20)
 
 # %%
 wsw.BackTesting()
 
 # %%
-wsw.BackTesting_Single(PriceReverse, RiskParity)
+wsw.BackTesting_Single(PriceMomentum, RiskParity)
 
 # %%
