@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import cvxpy as cp
-
+import math
 
 # %%
 df = pd.read_csv("SP500.csv")
@@ -162,15 +162,15 @@ rebalance_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskP
 
 # %%
 class Agent():
-    def __init__(self, balance, data, trade_strategies, rebalance_strategies, cycle, max_holding):
+    def __init__(self, portfolio, data, trade_strategies, rebalance_strategies, cycle, max_holding):
         """
-        Balance: dictionary (accounting book)
+        portfolio: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
         Cycle is the rebalancing period
         Data is the dataset
         Strategies is which factor investing stratgy this Agent has in disposal
         """
-        self.balance = balance
+        self.portfolio = portfolio
         self.data = data
         self.trade_strategies = trade_strategies
         self.rebalance_strategies = rebalance_strategies
@@ -196,6 +196,7 @@ class Agent():
         result = sorted(ranking, key = ranking.get)[:max_holding]
         return result
 
+
     def Rebalancing(self, ranking, rebalance_strategy, time):
         """
         Argument ranking: result from Agent.PitchStock
@@ -204,51 +205,66 @@ class Agent():
         """
         cycle = self.cycle
         data = self.data
-        max_holding = self.max_holding
+        cash = self.portfolio['cash']
+        # assume that cash earns risk-free rate interest
+        equity = self.get_Equity(time) + cash * (self.rf - 1)
         target_portfolio = {}
-        weight = 
+        weight = np.array(rebalance_strategy(data, ranking, time, cycle))
+        weight = int(weight * equity)
+        for w, stock in zip(weight, ranking):
+            price = data[stock].iloc[time]
+            shares = w // price
+            target_portfolio[stock] = shares
+            equity -= shares * price
+        target_portfolio['cash'] = equity
+        return target_portfolio
+
+
+    def get_Equity(self, time):
+        """
+        return the equity value for a given time
+            sum weight * price
+        """
+        data = self.data
+        portfolio = self.portfolio
+        cash = portfolio['cash']
+        ticker = list(portfolio)[1:]
+        total_equity = cash
+        for stock in ticker:
+            price = data[stock].iloc[time]
+            total_equity += price * portfolio[stock]
+        return total_equity
         
 
-    def Trading(self, ranking, time):
+    def Trading(self, target_portfolio, time):
         """
-        Argument ranking: list of stocks
-        returns nothing but changes the balance and record of the Agent
+        Argument target_portfolio: a dictionary get from rebalance 
+                    (what Agent.portfolio should be after trading)
+        returns nothing but update:
+                equity, portfolio, re, tran_cost
         """
         # take all necessary attributes from the class
         cost = 0
-        equity = self.equity
-        data = self.data
-        balance = self.balance
-        rf = self.rf
-        max_holding = self.max_holding
-        avail_cash = balance['cash'] * rf
+        portfolio = self.portfolio
+        # selling and adjust share
+        for i in list(portfolio):
+            if i not in target_portfolio and i != 'cash':
+                del portfolio[i]
+                cost += portfolio[i] * TRANS_COST
+            elif i in target_portfolio and i != 'cash':
+                diff = abs(portfolio[i] - target_portfolio[i])
+                cost += diff * TRANS_COST
         # buying
-        for i in ranking:
-            if i not in balance:
-                num_to_buy = (equity / max_holding) // data[i].iloc[time]
-                balance[i] = num_to_buy
-                change = num_to_buy * data[i].iloc[time]
-                cost += num_to_buy * TRANS_COST
-                avail_cash -= change
-
-        # selling
-        for i in list(balance):
-            if i not in ranking and i != 'cash':
-                num_to_sell = balance[i]
-                del balance[i]
-                change = num_to_sell * data[i].iloc[time]
-                cost += num_to_sell * TRANS_COST
-                avail_cash += change
-
-        # reassign values to the class attributes
-        balance['cash'] = avail_cash
-        self.balance = balance
-        equity = equity + avail_cash - cost
-        self.re = equity / INITIAL_BALANCE
-        self.equity = equity
+        for i in target_portfolio:
+            if i not in portfolio:
+                cost += target_portfolio[i] * TRANS_COST
+        # update all the attribute of the agent
         self.tran_cost += cost
+        self.portfolio = target_portfolio
+        self.equity = self.get_Equity(time)
+        self.re = self.equity / INITIAL_BALANCE
         
-        
+            
     def BackTesting(self):
         """
         This is backtsting for all strategies
@@ -256,10 +272,14 @@ class Agent():
             1. return for each strategy
             2. overall cost for each strategy
         """
-        strategies = self.strategies
-        print("There are %s strategies we are testing." % len(strategies))
+        trading_strategies = self.trading_strategies
+        rebalancing_strategies = self.rebalance_strategies
+        print("There are %s trading strategies and %s rebalancing strategies we are testing." % (len(trading_strategies), len(rebalancing_strategies)))
         print("They are: ")
-        for i in strategies:
+        for i in trading_strategies:
+            print("     %s" % i.__name__)
+        print('\n')
+        for i in rebalancing_strategies:
             print("     %s" % i.__name__)
         portfolio_perform = {}
         for strategy in strategies:
@@ -267,7 +287,7 @@ class Agent():
             total_return, vol, sharpe = self.BackTesting_Single(strategy)
             portfolio_perform[strategy.__name__] = [total_return, vol, sharpe]
             # reset balance, equity, re, and transaction cost for the agent
-            self.reset()  
+            self.reset()
             print("\n")
         # turn this dictionary into a nicely presentable dataframe
         table = pd.DataFrame.from_dict(portfolio_perform, orient='index')
@@ -275,26 +295,29 @@ class Agent():
         return table
     
 
-    def BackTesting_Single(self, strategy):
+    def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
         """
-        This is backtsting for one single strategy
+        This is backtsting for one single combination of trading and rebalancing strategy
         Return the total return, volatility and Sharpe ratio
         """
         cycle = self.cycle
         data = self.data
-        print("Testing %s" % strategy.__name__)
+        print("Trading strategy: %s" % trading_strategy.__name__)
+        print("\n")
+        print("Rebalancing strategy: %s" % rebalancing_strategy.__name__)
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
         portfolio_re = []
         for i in range(1, T):
             time = i * cycle
-            ranking = self.PitchStock(strategy, time)
-            self.Trading(ranking, time)
+            ranking = self.PitchStock(trading_strategy, time)
+            target_portfolio = self.Rebalancing(ranking, rebalancing_strategy, time)
+            self.Trading(target_portfolio, time)
             print("Rebalancing for %s time!" % i)
             portfolio_re.append(self.re)
         vol = np.std(portfolio_re)
         total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
-        sharpe = (total_return - (RISKFREE - 1)*100) / vol
+        sharpe = (total_return - (self.rf - 1)*100) / vol
         return total_return , vol, sharpe
 
     def reset(self):
@@ -302,7 +325,7 @@ class Agent():
         This reset the Agent to its initial holding. 
         Apply this method between testing different strategies.
         """
-        self.balance = {'cash': INITIAL_BALANCE}
+        self.portfolio = {'cash': INITIAL_BALANCE}
         self.equity = INITIAL_BALANCE
         self.re = float()
         self.tran_cost = float()
