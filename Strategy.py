@@ -34,6 +34,21 @@ def PriceReverse(df, cycle, time):
     except KeyError:
         return None
 
+def PriceMomentum(df, cycle, time):
+    """ Compute 1M Price Momentum as the following:
+        PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
+        Order: Descending
+    Argument df: dataframe object (n*1 vector)
+            cycle: how many days to look back to see its reversal
+            time: current index for df to look at
+    """
+    try:
+        previous_price = df.iloc[time - cycle]
+        return -(df.iloc[time] - previous_price) / previous_price
+    except KeyError:
+        return None
+
+
 def Price_High_Low(df, cycle, time):
     """
     Compute High-minus-low:
@@ -86,7 +101,7 @@ def AnnVol(df, cycle, time):
     except KeyError:
         return None
 
-trading_strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
+trading_strategies = [PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol]
 
 # %%
 def MinVariance(data, ranking, time, cycle):
@@ -135,12 +150,19 @@ def RiskParity(data, ranking, time, cycle):
     disregards covariance is the major drawback
     return weighting for each stock (in percentage)
     """
+    covar = np.zeros(shape = (len(ranking), cycle))
+    for i in range(len(ranking)):
+        covar[i] = df[ranking[i]].iloc[2000+1-cycle:2000+1]
+    vol = covar.std(axis = 1)
+    weight = vol / vol.sum()
+    return weight    
 
 
+rebalance_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
 
 # %%
 class Agent():
-    def __init__(self, balance, data, strategies, cycle, max_holding):
+    def __init__(self, balance, data, trade_strategies, rebalance_strategies, cycle, max_holding):
         """
         Balance: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -150,7 +172,8 @@ class Agent():
         """
         self.balance = balance
         self.data = data
-        self.strategies = strategies
+        self.trade_strategies = trade_strategies
+        self.rebalance_strategies = rebalance_strategies
         self.cycle = cycle
         self.equity = INITIAL_BALANCE
         self.re = float()
@@ -277,7 +300,7 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalance_strategies, 20, 10)
 
 # %%
 ranking = wsw.PitchStock(trading_strategies[0], 2000)
