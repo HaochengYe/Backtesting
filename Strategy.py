@@ -284,19 +284,18 @@ class Agent():
         portfolio_re = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
         portfolio_vol = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
         portfolio_sharpe = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
-        for trading_strategy in trading_strategies:
-            for rebalancing_strategy in rebalancing_strategies:
+        for col, trading_strategy in enumerate(trading_strategies):
+            for row, rebalancing_strategy in enumerate(rebalancing_strategies):
                 # use BackTesting_Single to get the three value of metrics needed
                 total_return, vol, sharpe = self.BackTesting_Single(trading_strategy, rebalancing_strategy)
-
-            portfolio_perform[strategy.__name__] = [total_return, vol, sharpe]
-            # reset balance, equity, re, and transaction cost for the agent
-            self.reset()
-            print("\n")
+                portfolio_re[col][row] = total_return
+                portfolio_vol[col][row] = vol
+                portfolio_sharpe[col][row] = sharpe
+                # reset balance, equity, re, and transaction cost for the agent
+                self.reset()
+                print("\n")
         # turn this dictionary into a nicely presentable dataframe
-        table = pd.DataFrame.from_dict(portfolio_perform, orient='index')
-        table.columns = ['Annualized Return', 'Volatility', 'Sharpe Ratio']
-        return table
+        return portfolio_re, portfolio_vol, portfolio_sharpe
     
 
     def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
