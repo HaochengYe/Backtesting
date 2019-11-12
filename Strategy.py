@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import cvxpy as cp
 
 
 # %%
@@ -12,8 +13,8 @@ print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
-INITIAL_BALANCE = 10000
-TRANS_COST = 0.01
+INITIAL_BALANCE = 24628
+TRANS_COST = 0.00
 # define the risk-free rate
 RISKFREE = 1.02
 
@@ -85,7 +86,56 @@ def AnnVol(df, cycle, time):
     except KeyError:
         return None
 
-strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
+trading_strategies = [PriceReverse, Price_High_Low, Vol_Coefficient, AnnVol]
+
+# %%
+def MinVariance(data, ranking, time, cycle):
+    """
+    MinVariance minimizes variance (needs short positions)
+    Argument ranking: list of stocks from PitchStock
+            return weighting for each stock (in percentage)
+    """
+    covar = np.zeros(shape = (len(ranking), cycle))
+    for i in range(len(ranking)):
+        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+    inv_cov_matrix = np.linalg.inv(np.cov(covar))
+    ita = np.ones(inv_cov_matrix.shape[0])
+    weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
+    return weight
+
+def EqualWeight(data, ranking, time, cycle):
+    """
+    EqualWeight assign weight by 1/N
+    return weighting for each stock (in percentage)
+    """
+    N = len(ranking)
+    weight = np.ones(shape=N) / N
+    return weight
+
+def MeanVariance_Constraint(data, ranking, time, cycle):
+    """
+    Mean Variance solved by convex optimization
+    return weighting for each stock (in percentageg)
+    """
+    covar = np.zeros(shape = (len(ranking), cycle))
+    for i in range(len(ranking)):
+        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+    cov_matrix = np.cov(covar)
+    weight = cp.Variable(shape = len(ranking))
+    objective = cp.Minimize(cp.quad_form(weight, cov_matrix))
+    constraints = [cp.sum(weight) == 1, weight >= 1 / (2 * len(ranking))]
+    problem = cp.Problem(objective, constraints)
+    result = problem.solve()
+    return weight.value
+
+
+def RiskParity(data, ranking, time, cycle):
+    """
+    RiskParity inversely invest for stock according to their volatility
+    disregards covariance is the major drawback
+    return weighting for each stock (in percentage)
+    """
+
 
 
 # %%
@@ -122,21 +172,6 @@ class Agent():
             ranking[i] = strategy(data[i], cycle, time)
         result = sorted(ranking, key = ranking.get)[:max_holding]
         return result
-
-    def MeanVarWeight(self, ranking, time):
-        """
-        Argument ranking: list of stocks from PitchStock
-                    return dictionary {Stock: Shares to buy}
-        """
-        cycle = self.cycle
-        data = self.data
-        covar = np.zeros(shape = (len(ranking), cycle))
-        for i in range(len(ranking)):
-            covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
-        inv_cov_matrix = np.linalg.inv(np.cov(covar))
-        ita = np.ones(inv_cov_matrix.shape[0])
-        weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
-        return weight
         
 
     def Trading(self, ranking, time):
@@ -227,7 +262,6 @@ class Agent():
         sharpe = (total_return - (RISKFREE - 1)*100) / vol
         return total_return , vol, sharpe
 
-    
     def reset(self):
         """
         This reset the Agent to its initial holding. 
@@ -240,27 +274,14 @@ class Agent():
             
 
 # %%
-def MeanVarWeight(ranking, time):
-    """
-    Argument ranking: list of stocks from PitchStock
-                return dictionary {Stock: Shares to buy}
-    """
-    cycle = 20
-    data = df
-    covar = np.zeros(shape = (len(ranking), cycle))
-    for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
-    inv_cov_matrix = np.linalg.inv(np.cov(covar))
-    ita = np.ones(inv_cov_matrix.shape[0])
-    weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
-    return weight
+
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, strategies, 20, 20)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, 20, 10)
 
 # %%
-ranking = wsw.PitchStock(strategies[0], 2000)
-wsw.Trading(ranking, 2476)
+ranking = wsw.PitchStock(trading_strategies[0], 2000)
+wsw.Trading(ranking, 2480)
 
 # %%
 wsw.BackTesting()
