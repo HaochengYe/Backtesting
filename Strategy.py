@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cvxpy as cp
 import math
+import seaborn as sns; sns.set()
 
 # %%
 df = pd.read_csv("SP500.csv")
@@ -162,7 +163,8 @@ rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, Ris
 
 # %%
 class Agent():
-    def __init__(self, portfolio, data, trade_strategies, rebalancing_strategies, cycle, max_holding):
+
+    def __init__(self, portfolio, data, trading_strategies, rebalancing_strategies, cycle, max_holding):
         """
         portfolio: dictionary (accounting book)
         Max_holding is the maximum number of stocks this agent can hold
@@ -172,7 +174,7 @@ class Agent():
         """
         self.portfolio = portfolio
         self.data = data
-        self.trade_strategies = trade_strategies
+        self.trading_strategies = trading_strategies
         self.rebalancing_strategies = rebalancing_strategies
         self.cycle = cycle
         self.equity = INITIAL_BALANCE
@@ -281,16 +283,16 @@ class Agent():
         print('\n')
         for i in rebalancing_strategies:
             print("     %s" % i.__name__)
-        portfolio_re = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
-        portfolio_vol = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
-        portfolio_sharpe = pd.DataFrame(columns=range(len(trading_strategies)), index = range(len(rebalancing_strategies)))
+        portfolio_re = pd.DataFrame(index = [x.__name__ for x in rebalancing_strategies], columns = [x.__name__ for x in trading_strategies])
+        portfolio_vol = pd.DataFrame(index = [x.__name__ for x in rebalancing_strategies], columns = [x.__name__ for x in trading_strategies])
+        portfolio_sharpe = pd.DataFrame(index = [x.__name__ for x in rebalancing_strategies], columns = [x.__name__ for x in trading_strategies])
         for col, trading_strategy in enumerate(trading_strategies):
             for row, rebalancing_strategy in enumerate(rebalancing_strategies):
                 # use BackTesting_Single to get the three value of metrics needed
                 total_return, vol, sharpe = self.BackTesting_Single(trading_strategy, rebalancing_strategy)
-                portfolio_re[col][row] = total_return
-                portfolio_vol[col][row] = vol
-                portfolio_sharpe[col][row] = sharpe
+                portfolio_re.iloc[row][col] = total_return
+                portfolio_vol.iloc[row][col] = vol
+                portfolio_sharpe.iloc[row][col] = sharpe
                 # reset balance, equity, re, and transaction cost for the agent
                 self.reset()
                 print("\n")
@@ -308,6 +310,7 @@ class Agent():
         print("Trading strategy: %s" % trading_strategy.__name__)
         print("\n")
         print("Rebalancing strategy: %s" % rebalancing_strategy.__name__)
+        print("\n")
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
         portfolio_re = []
@@ -333,6 +336,8 @@ class Agent():
         self.equity = INITIAL_BALANCE
         self.re = float()
         self.tran_cost = float()
+
+    
             
 
 # %%
@@ -347,9 +352,28 @@ target = wsw.Rebalancing(ranking, rebalancing_strategies[3], 20)
 wsw.Trading(target, 20)
 
 # %%
-wsw.BackTesting()
+return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
+
 
 # %%
-wsw.BackTesting_Single(PriceMomentum, RiskParity)
+return_chart = return_chart.astype(float)
+plt.title('Return Heatmap')
+sns.heatmap(return_chart, annot = True, square=True, cmap = 'RdBu')
 
+
+# %%
+vol_chart = vol_chart.astype(float)
+plt.title('Volatility Heatmap')
+sns.heatmap(vol_chart, annot = True, square=True, cmap = 'RdBu')
+
+# %%
+sharpe_chart = sharpe_chart.astype(float)
+plt.title('Sharpe Ratio Heatmap')
+sns.heatmap(sharpe_chart, annot = True, square=True, cmap = 'RdBu')
+
+
+# %%
+
+
+wsw.BackTesting_Single(PriceMomentum, RiskParity)
 # %%
