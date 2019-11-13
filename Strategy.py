@@ -114,7 +114,7 @@ def MinVariance(data, ranking, time, cycle):
     covar = np.zeros(shape = (len(ranking), cycle))
     for i in range(len(ranking)):
         covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
-    inv_cov_matrix = np.linalg.inv(np.cov(covar))
+    inv_cov_matrix = np.linalg.pinv(np.cov(covar))
     ita = np.ones(inv_cov_matrix.shape[0])
     weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
     return weight
@@ -344,7 +344,7 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, 5, 20)
 
 # %%
 ranking = wsw.PitchStock(trading_strategies[0], 20)
@@ -352,8 +352,8 @@ target = wsw.Rebalancing(ranking, rebalancing_strategies[3], 20)
 wsw.Trading(target, 20)
 
 # %%
+%%time
 return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
-
 
 # %%
 return_chart = return_chart.astype(float)
