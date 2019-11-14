@@ -90,12 +90,13 @@ class Agent():
         data = self.data
         portfolio = self.portfolio
         cash = portfolio['cash']
-        ticker = list(portfolio)
-        ticker.remove('cash')
         total_equity = cash
-        for stock in ticker:
-            price = data[stock].iloc[time]
-            total_equity += price * portfolio[stock]
+        # compute the stock value
+        del portfolio['cash']
+        ticker = list(portfolio)
+        shares = np.array(list(portfolio.values()))
+        price = np.matrix(data[ticker].iloc[time])
+        total_equity += price @ shares
         return total_equity
         
 
@@ -127,6 +128,23 @@ class Agent():
         self.re = self.equity / INITIAL_BALANCE
         
 
+    def get_Vol(self, time):
+        """
+        use portfolio weights to calcualte equity paths in this cycle
+        and then compute its variance
+        """
+        cycle = self.cycle
+        portfolio = self.portfolio
+        del portfolio['cash']
+        # this is a vector of max_holding number of elements
+        shares = np.array(list(portfolio.values()))
+        # ticker in the portfolio except cash
+        ticker = list(portfolio)
+        price_matrix = np.matrix(df[ticker].iloc[time+1-cycle:time+1])
+        equity_path = price_matrix @ shares
+        return np.std(equity_path)
+
+    
     def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
         """
         This is backtsting for one single combination of trading and rebalancing strategy
@@ -141,9 +159,12 @@ class Agent():
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
         portfolio_re = []
+        portfolio_vol = []
         for i in range(1, T):
             time = i * cycle
             ranking = self.PitchStock(trading_strategy, time)
+            # get volatility before portfolio updates
+            portfolio_vol.append(self.get_Vol(time))
             target_portfolio = self.Rebalancing(ranking, rebalancing_strategy, time)
             self.Trading(target_portfolio, time)
             print("Rebalancing for %s time!" % i)
