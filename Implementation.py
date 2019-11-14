@@ -126,7 +126,34 @@ class Agent():
         self.equity = self.get_Equity(time) - cost
         self.re = self.equity / INITIAL_BALANCE
         
-            
+
+    def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
+        """
+        This is backtsting for one single combination of trading and rebalancing strategy
+        Return the total return, volatility and Sharpe ratio
+        """
+        cycle = self.cycle
+        data = self.data
+        print("Trading strategy: %s" % trading_strategy.__name__)
+        print("\n")
+        print("Rebalancing strategy: %s" % rebalancing_strategy.__name__)
+        print("\n")
+        T = len(data) // cycle
+        print("We are rebalancing for %s number of times." % T)
+        portfolio_re = []
+        for i in range(1, T):
+            time = i * cycle
+            ranking = self.PitchStock(trading_strategy, time)
+            target_portfolio = self.Rebalancing(ranking, rebalancing_strategy, time)
+            self.Trading(target_portfolio, time)
+            print("Rebalancing for %s time!" % i)
+            portfolio_re.append(self.re)
+        vol = np.std(portfolio_re)
+        total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
+        sharpe = (total_return - (self.rf - 1)*100) / vol
+        return total_return , vol, sharpe
+
+                
     def BackTesting(self):
         """
         This is backtsting for all strategies
@@ -159,33 +186,6 @@ class Agent():
         # turn this dictionary into a nicely presentable dataframe
         return portfolio_re, portfolio_vol, portfolio_sharpe
     
-
-    def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
-        """
-        This is backtsting for one single combination of trading and rebalancing strategy
-        Return the total return, volatility and Sharpe ratio
-        """
-        cycle = self.cycle
-        data = self.data
-        print("Trading strategy: %s" % trading_strategy.__name__)
-        print("\n")
-        print("Rebalancing strategy: %s" % rebalancing_strategy.__name__)
-        print("\n")
-        T = len(data) // cycle
-        print("We are rebalancing for %s number of times." % T)
-        portfolio_re = []
-        for i in range(1, T):
-            time = i * cycle
-            ranking = self.PitchStock(trading_strategy, time)
-            target_portfolio = self.Rebalancing(ranking, rebalancing_strategy, time)
-            self.Trading(target_portfolio, time)
-            print("Rebalancing for %s time!" % i)
-            portfolio_re.append(self.re)
-        vol = np.std(portfolio_re)
-        total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
-        sharpe = (total_return - (self.rf - 1)*100) / vol
-        return total_return , vol, sharpe
-
 
     def reset(self):
         """
