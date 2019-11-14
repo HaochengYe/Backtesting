@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 import cvxpy as cp
 import math
 import seaborn as sns; sns.set()
-
-# %%
 from Strategy import *
+
 
 # %%
 df = pd.read_csv("SP500.csv")
