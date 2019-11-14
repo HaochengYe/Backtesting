@@ -1,13 +1,34 @@
 # Backtesting
 Factor investing backtesting platform
 
+
+## Files:
 ConstructDataset.py needs Python 2.7 to run
 For those who wanna skip this step, I have also put the downloaded .csv file in this repository
 
-Strategy.py has factor strategies in it.
+Strategy.py has 5 trading strategies in it:
+Price Reversal
+Price Momentum
+Price High - Price Low
+Volatility Coefficient
+Annualized Volatility
 
-Improvements:
-Three directions (hyperparameter tuning & integration of strategies & portfolio rebalancing)
-1. Parameters that are subjectively choose are: max_holding_num, cycle. And variables that should be observed from the market but now are personally assigned are: transaction_cost, risk_free_rate. We can find optimization methods that choose these parameters in an optimal way under different scenarios given these environment variables. Perhaps even we could draw an efficient frontier since we only have two parameters that need to be optimized.
-2. All strategies should exhibit some seasonalities for a given macroeconomic condition of the market. We could delve further into the correlation between the strategies, and develop a new function of switching strategies based on some signals.
-3. Adding a new function to the class object called mean-variance portfolio, which calculates the mean-variance optimal portfolio weight. Also should modify the output of backtesting to include volatility and Sharpe ratio instead of transaction cost. Integrate mean-variance portfolio weight into "Trading" function, rewrite how the agent rebalances its position given by its original "balance" and the one proposed by the mean-variance optimal weight. 
+And 4 rebalancing strategies:
+Minimizing Variance
+Mean Variance with Constraints
+Equal Weight
+Risk Parity
+
+Implementation.py includes the class object to:
+1. Pitch Stock: generating a list of stocks to invest by one trading strategy
+2. Rebalance: calculate the target portfolio weight by one rebalancing strategy
+3. Trading: Adjust agent's portfolio to match the target portfolio
+4. Backtest: which tests all combinations of trading and rebalancing strategies in Strategy.py
+
+It can also generate heatmaps to help visualize the return, volatility and Sharpe ratio given a specific trading and rebalancing combination.
+
+## Things to improve:
+1. Add more strategies (trading or rebalancing) following the format in Strategy.py
+2. Integration of strategies
+3. Better source of data
+4. Better visualization to illustrate the time relevance of these strategies.

@@ -135,13 +135,14 @@ class Agent():
         and then compute its variance
         """
         cycle = self.cycle
+        data = self.data
         portfolio = copy.deepcopy(self.portfolio)
         del portfolio['cash']
         # this is a vector of max_holding number of elements
         shares = np.array(list(portfolio.values()))
         # ticker in the portfolio except cash
         ticker = list(portfolio)
-        price_matrix = np.matrix(df[ticker].iloc[time+1-cycle:time+1])
+        price_matrix = np.matrix(data[ticker].iloc[time+1-cycle:time+1])
         equity_path = price_matrix @ shares
         return equity_path
 
@@ -222,7 +223,7 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df[2000:], trading_strategies, rebalancing_strategies, 20, 10)
 
 # %%
 ranking = wsw.PitchStock(trading_strategies[0], 20)
