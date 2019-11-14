@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import cvxpy as cp
 import math
 import seaborn as sns; sns.set()
+import copy
 from Strategy import *
 
 
@@ -88,7 +89,7 @@ class Agent():
             sum weight * price
         """
         data = self.data
-        portfolio = self.portfolio
+        portfolio = copy.deepcopy(self.portfolio)
         cash = portfolio['cash']
         total_equity = cash
         # compute the stock value
@@ -97,7 +98,7 @@ class Agent():
         shares = np.array(list(portfolio.values()))
         price = np.matrix(data[ticker].iloc[time])
         total_equity += price @ shares
-        return total_equity
+        return np.asscalar(total_equity)
         
 
     def Trading(self, target_portfolio, time):
@@ -134,7 +135,7 @@ class Agent():
         and then compute its variance
         """
         cycle = self.cycle
-        portfolio = self.portfolio
+        portfolio = copy.deepcopy(self.portfolio)
         del portfolio['cash']
         # this is a vector of max_holding number of elements
         shares = np.array(list(portfolio.values()))
@@ -142,7 +143,7 @@ class Agent():
         ticker = list(portfolio)
         price_matrix = np.matrix(df[ticker].iloc[time+1-cycle:time+1])
         equity_path = price_matrix @ shares
-        return np.std(equity_path)
+        return equity_path
 
     
     def BackTesting_Single(self, trading_strategy, rebalancing_strategy):
@@ -158,21 +159,22 @@ class Agent():
         print("\n")
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
-        portfolio_re = []
-        portfolio_vol = []
+        portfolio_path = []
         for i in range(1, T):
             time = i * cycle
             ranking = self.PitchStock(trading_strategy, time)
-            # get volatility before portfolio updates
-            portfolio_vol.append(self.get_Vol(time))
             target_portfolio = self.Rebalancing(ranking, rebalancing_strategy, time)
+            # get volatility before portfolio updates
+            portfolio_path.append(self.get_Vol(time))
             self.Trading(target_portfolio, time)
             print("Rebalancing for %s time!" % i)
-            portfolio_re.append(self.re)
-        vol = np.std(portfolio_re)
-        total_return = (np.power(self.re, 252 // cycle / T) - 1)*100
-        sharpe = (total_return - (self.rf - 1)*100) / vol
-        return total_return , vol, sharpe
+        vol = np.std(portfolio_path) / np.sqrt(T * cycle) / 100
+        # annualized return
+        annual_return = (np.power(self.re, 252 // cycle / T) - 1)*100
+        # annualized risk free
+        total_rf = np.power(RISKFREE, cycle * T / 252)
+        sharpe = (self.re - total_rf) / vol
+        return annual_return , vol, sharpe
 
                 
     def BackTesting(self):
@@ -220,7 +222,7 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df[2000:], trading_strategies, rebalancing_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, 20, 10)
 
 # %%
 ranking = wsw.PitchStock(trading_strategies[0], 20)
