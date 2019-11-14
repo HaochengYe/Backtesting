@@ -228,7 +228,7 @@ sns.heatmap(sharpe_chart, annot = True, square=True, cmap = 'RdBu')
 
 
 # %%
-
-
 wsw.BackTesting_Single(PriceMomentum, RiskParity)
+
+
 # %%
