@@ -29,6 +29,6 @@ It can also generate heatmaps to help visualize the return, volatility and Sharp
 
 ## Things to improve:
 1. Add more strategies (trading or rebalancing) following the format in Strategy.py
-2. Integration of strategies
+2. Integration of strategies: Aggregate strategy performances by aggregating time relevance
 3. Better source of data
 4. Better visualization to illustrate the time relevance of these strategies.

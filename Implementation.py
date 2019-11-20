@@ -17,10 +17,10 @@ print(df.shape)
 ticker = list(df.columns)[1:]
 # rebalance portfolio every month (20 trading days)
 
-INITIAL_BALANCE = 24628
-TRANS_COST = 0.05
+INITIAL_BALANCE = 49800
+TRANS_COST = 0.00
 # define the risk-free rate
-RISKFREE = 1.02
+RISKFREE = 1.00
 
 # %%
 class Agent():
@@ -223,12 +223,12 @@ class Agent():
 
 
 # %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df[2000:], trading_strategies, rebalancing_strategies, 20, 10)
+wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], 20, 20)
 
 # %%
-ranking = wsw.PitchStock(trading_strategies[0], 20)
-target = wsw.Rebalancing(ranking, rebalancing_strategies[3], 20)
-wsw.Trading(target, 20)
+ranking = wsw.PitchStock(trading_strategies[2], 2486)
+target = wsw.Rebalancing(ranking, rebalancing_strategies[1], 2486)
+wsw.Trading(target, 2484)
 
 # %%
 %%time

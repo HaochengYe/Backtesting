@@ -139,7 +139,8 @@ def RiskParity(data, ranking, time, cycle):
     covar = np.zeros(shape = (len(ranking), cycle))
     for i in range(len(ranking)):
         covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
-    vol = covar.std(axis = 1)
+    vol = np.array(covar.std(axis = 1))
+    vol = np.reciprocal(vol)
     weight = vol / vol.sum()
     return weight    
 
