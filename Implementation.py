@@ -226,9 +226,9 @@ class Agent():
 wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], 20, 10)
 
 # %%
-ranking = wsw.PitchStock(trading_strategies[0], 2490)
-target = wsw.Rebalancing(ranking, rebalancing_strategies[1], 2490)
-wsw.Trading(target, 2490)
+ranking = wsw.PitchStock(trading_strategies[0], 2499)
+target = wsw.Rebalancing(ranking, rebalancing_strategies[3], 2499)
+wsw.Trading(target, 2499)
 
 # %%
 %%time
