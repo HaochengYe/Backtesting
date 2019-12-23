@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import cvxpy as cp
 
+
 # %%
 def PriceReverse(df, cycle, time):
     """ Compute 1M Price Reversal as the following:
@@ -17,6 +18,7 @@ def PriceReverse(df, cycle, time):
         return (df.iloc[time] - previous_price) / previous_price
     except KeyError:
         return None
+
 
 def PriceMomentum(df, cycle, time):
     """ Compute 1M Price Momentum as the following:
@@ -43,11 +45,12 @@ def Price_High_Low(df, cycle, time):
             time: current index for df to look at
     """
     try:
-        High = max(df.iloc[time-cycle:time])
-        Low = min(df.iloc[time-cycle:time])
+        High = max(df.iloc[time - cycle:time])
+        Low = min(df.iloc[time - cycle:time])
         return -(High - df.iloc[time]) / (df.iloc[time] - Low)
     except KeyError:
         return None
+
 
 def Vol_Coefficient(df, cycle, time):
     """
@@ -59,11 +62,12 @@ def Vol_Coefficient(df, cycle, time):
             time: current index for df to look at
     """
     try:
-        std = np.std(df.iloc[time-cycle:time])
-        avg = np.mean(df.iloc[time-cycle:time])
+        std = np.std(df.iloc[time - cycle:time])
+        avg = np.mean(df.iloc[time - cycle:time])
         return -std / avg
     except KeyError:
         return None
+
 
 def AnnVol(df, cycle, time):
     """
@@ -78,9 +82,9 @@ def AnnVol(df, cycle, time):
     try:
         r_2 = int(0)
         for i in range(1, cycle):
-            log = np.log(df.iloc[time-i] / df.iloc[time-i-1])
-            r_2 += log**2
-        result = np.sqrt(252/cycle * r_2)
+            log = np.log(df.iloc[time - i] / df.iloc[time - i - 1])
+            r_2 += log ** 2
+        result = np.sqrt(252 / cycle * r_2)
         return -result
     except KeyError:
         return None
@@ -96,13 +100,14 @@ def MinVariance(data, ranking, time, cycle):
     Argument ranking: list of stocks from PitchStock
             return weighting for each stock (in percentage)
     """
-    covar = np.zeros(shape = (len(ranking), cycle))
+    covar = np.zeros(shape=(len(ranking), cycle))
     for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+        covar[i] = data[ranking[i]].iloc[time + 1 - cycle:time + 1]
     inv_cov_matrix = np.linalg.pinv(np.cov(covar))
     ita = np.ones(inv_cov_matrix.shape[0])
     weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
     return weight
+
 
 def EqualWeight(data, ranking, time, cycle):
     """
@@ -112,6 +117,8 @@ def EqualWeight(data, ranking, time, cycle):
     N = len(ranking)
     weight = np.ones(shape=N) / N
     return weight
+
+
 '''
 def MeanVariance_Constraint(data, ranking, time, cycle):
     """
@@ -130,19 +137,21 @@ def MeanVariance_Constraint(data, ranking, time, cycle):
     return weight.value
 '''
 
+
 def RiskParity(data, ranking, time, cycle):
     """
     RiskParity inversely invest for stock according to their volatility
     disregards covariance is the major drawback
     return weighting for each stock (in percentage)
     """
-    covar = np.zeros(shape = (len(ranking), cycle))
+    covar = np.zeros(shape=(len(ranking), cycle))
     for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
-    vol = np.array(covar.std(axis = 1))
+        covar[i] = data[ranking[i]].iloc[time + 1 - cycle:time + 1]
+    vol = np.array(covar.std(axis=1))
     vol = np.reciprocal(vol)
     weight = vol / vol.sum()
-    return weight    
+    return weight
 
-#rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+
+# rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
 rebalancing_strategies = [MinVariance, EqualWeight, RiskParity]
