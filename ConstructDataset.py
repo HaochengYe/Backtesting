@@ -18,8 +18,8 @@ for i in range(len(sp500)):
     unicode = sp500[i]['symbol']
     ticker_list.append(str(unicode).strip('\n'))
 
-START = datetime(2010,1,1)
-END = datetime(2019, 12, 8)
+START = datetime(2001,1,1)
+END = datetime(2019, 12, 17)
 # only keeps "adj close" column, delete the rest
 del_col = ['High', 'Low', 'Open', 'Close', 'Volume']
 # master dataset where contain all S&P 500 data

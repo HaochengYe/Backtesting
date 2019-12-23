@@ -112,7 +112,7 @@ def EqualWeight(data, ranking, time, cycle):
     N = len(ranking)
     weight = np.ones(shape=N) / N
     return weight
-
+'''
 def MeanVariance_Constraint(data, ranking, time, cycle):
     """
     Mean Variance solved by convex optimization
@@ -128,7 +128,7 @@ def MeanVariance_Constraint(data, ranking, time, cycle):
     problem = cp.Problem(objective, constraints)
     result = problem.solve()
     return weight.value
-
+'''
 
 def RiskParity(data, ranking, time, cycle):
     """
@@ -144,4 +144,5 @@ def RiskParity(data, ranking, time, cycle):
     weight = vol / vol.sum()
     return weight    
 
-rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+#rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+rebalancing_strategies = [MinVariance, EqualWeight, RiskParity]
