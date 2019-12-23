@@ -19,7 +19,7 @@ for i in range(len(sp500)):
     ticker_list.append(str(unicode).strip('\n'))
 
 START = datetime(2001,1,1)
-END = datetime(2019, 12, 17)
+END = datetime(2019, 12, 23)
 # only keeps "adj close" column, delete the rest
 del_col = ['High', 'Low', 'Open', 'Close', 'Volume']
 # master dataset where contain all S&P 500 data
@@ -27,7 +27,7 @@ master = pd.DataFrame(columns=['Date'])
 
 
 # %%
-%%time
+
 for ticker in ticker_list:
     try:
         dataset = pdr.get_data_yahoo(symbols = ticker, start = START, end = END)

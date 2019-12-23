@@ -231,7 +231,6 @@ target = wsw.Rebalancing(ranking, rebalancing_strategies[2], 4769)
 wsw.Trading(target, 4769)
 
 # %%
-%%time
 return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
 # %%
