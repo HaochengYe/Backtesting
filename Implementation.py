@@ -226,11 +226,6 @@ class Agent():
 wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], 20, 10)
 
 # %%
-ranking = wsw.PitchStock(trading_strategies[0], 4769)
-target = wsw.Rebalancing(ranking, rebalancing_strategies[2], 4769)
-wsw.Trading(target, 4769)
-
-# %%
 return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
 # %%
@@ -248,10 +243,5 @@ sns.heatmap(vol_chart, annot = True, square=True, cmap = 'RdBu')
 sharpe_chart = sharpe_chart.astype(float)
 plt.title('Sharpe Ratio Heatmap')
 sns.heatmap(sharpe_chart, annot = True, square=True, cmap = 'RdBu')
-
-
-# %%
-wsw.BackTesting_Single(PriceMomentum, RiskParity)
-
 
 # %%
