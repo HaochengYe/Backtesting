@@ -6,12 +6,13 @@ import cvxpy as cp
 
 # %%
 def PriceReverse(df, cycle, time):
-    """ Compute 1M Price Reversal as the following:
-        PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
-        Order: Ascending
-    Argument df: dataframe object (n*1 vector)
-            cycle: how many days to look back to see its reversal
-            time: current index for df to look at
+    """
+    Compute 1M Price Reversal
+    Order: Ascending
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
     """
     try:
         previous_price = df.iloc[time - cycle]
@@ -21,12 +22,13 @@ def PriceReverse(df, cycle, time):
 
 
 def PriceMomentum(df, cycle, time):
-    """ Compute 1M Price Momentum as the following:
-        PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
-        Order: Descending
-    Argument df: dataframe object (n*1 vector)
-            cycle: how many days to look back to see its reversal
-            time: current index for df to look at
+    """
+    Compute 1M Price Reversal
+    Order: Descending
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
     """
     try:
         previous_price = df.iloc[time - cycle]
@@ -38,11 +40,11 @@ def PriceMomentum(df, cycle, time):
 def Price_High_Low(df, cycle, time):
     """
     Compute High-minus-low:
-    HL_{i,t} = (High_{i,t} - Close_{i,t}) / (Close_{i,t} - Low_{i,t})
     Order: Descending
-    Argument df: dataframe object (n*1 vector)
-            cycle: how many days to look back to see its reversal
-            time: current index for df to look at
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: HL_{i,t} = (High_{i,t} - Close_{i,t}) / (Close_{i,t} - Low_{i,t})
     """
     try:
         High = max(df.iloc[time - cycle:time])
@@ -55,11 +57,11 @@ def Price_High_Low(df, cycle, time):
 def Vol_Coefficient(df, cycle, time):
     """
     Compute Coefficient of Variation:
-    CV_{i,t} = Std(Close_i, cycle) / Ave(Close_i, cycle)
     Order: Descending
-        Argument df: dataframe object (n*1 vector)
-            cycle: how many days to look back to see its reversal
-            time: current index for df to look at
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: CV_{i,t} = Std(Close_i, cycle) / Ave(Close_i, cycle)
     """
     try:
         std = np.std(df.iloc[time - cycle:time])
@@ -71,13 +73,13 @@ def Vol_Coefficient(df, cycle, time):
 
 def AnnVol(df, cycle, time):
     """
-    Compute Coefficient of Variation:
-    AnnVol = sqrt(252) * sqrt(1/21 * sum(r_{i,t-j}^2))
-    where r_{i,s} = log(Close_{i,t} / Close_{i,t-1})
+    Compute Annual Volatility:
     Order: Descending
-        Argument df: dataframe object (n*1 vector)
-            cycle: how many days to look back to see its reversal
-            time: current index for df to look at
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: AnnVol = sqrt(252) * sqrt(1/21 * sum(r_{i,t-j}^2))
+    where r_{i,s} = log(Close_{i,t} / Close_{i,t-1})
     """
     try:
         r_2 = int(0)
@@ -90,10 +92,52 @@ def AnnVol(df, cycle, time):
         return None
 
 
+def MACD(df, cycle, time):
+    """
+    Compute Moving Average Convergence Divergence:
+    Order: Descending
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: cycle-Period EMA - cycle*2-Period EMA
+    where EMA = Price_t * k + EMA_t-1 * (1-k)
+    k = 2 / (N+1)
+    """
+    try:
+        data = df.iloc[time - cycle:time]
+        EMA_SR = data.ewm(span=cycle).mean()
+        EMA_LR = data.ewm(span=cycle*2).mean()
+        res = list(EMA_SR)[-1] - list(EMA_LR)[-1]
+        return res
+    except KeyError:
+        pass
+
+
+def BoolingerBands(df, cycle, time):
+    """
+    Compute Boolinger Bands:
+    Order: Descending
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: Ave(cycle) +- 2 * Std(cycle)
+    """
+    try:
+        data = df.iloc[time - 2*cycle:time]
+        SMA = data.rolling(cycle).mean()
+        SMA.dropna(inplace=True)
+        up_bound = SMA + np.std(df.iloc[time - cycle:time]) * 2
+        lw_bound = SMA - np.std(df.iloc[time - cycle:time]) * 2
+        return res
+    except KeyError:
+        pass
+
+
+
+
 trading_strategies = [PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol]
 
 
-# %%
 def MinVariance(data, ranking, time, cycle):
     """
     MinVariance minimizes variance (needs short positions)
@@ -119,7 +163,6 @@ def EqualWeight(data, ranking, time, cycle):
     return weight
 
 
-'''
 def MeanVariance_Constraint(data, ranking, time, cycle):
     """
     Mean Variance solved by convex optimization
@@ -135,7 +178,6 @@ def MeanVariance_Constraint(data, ranking, time, cycle):
     problem = cp.Problem(objective, constraints)
     result = problem.solve()
     return weight.value
-'''
 
 
 def RiskParity(data, ranking, time, cycle):
@@ -153,5 +195,5 @@ def RiskParity(data, ranking, time, cycle):
     return weight
 
 
-# rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
-rebalancing_strategies = [MinVariance, EqualWeight, RiskParity]
+rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+
