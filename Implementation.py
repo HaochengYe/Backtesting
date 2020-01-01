@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cvxpy as cp
 import math
-import seaborn as snsi
+import seaborn as sns
 
 sns.set()
 import copy

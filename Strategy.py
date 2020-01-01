@@ -31,7 +31,7 @@ def PriceMomentum(df, cycle, time):
     :return: PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
     """
     try:
-        previous_price = df.iloc[time - cycle]
+        previous_price = df.iloc[time - 2*cycle]
         return -(df.iloc[time] - previous_price) / previous_price
     except KeyError:
         return None
@@ -123,19 +123,21 @@ def BoolingerBands(df, cycle, time):
     :return: Ave(cycle) +- 2 * Std(cycle)
     """
     try:
-        data = df.iloc[time - 2*cycle:time]
-        SMA = data.rolling(cycle).mean()
+        data_lr = df.iloc[time - 2*cycle:time]
+        data_sr = df.iloc[time - cycle:time]
+        SMA = data_lr.rolling(cycle).mean()
         SMA.dropna(inplace=True)
-        up_bound = SMA + np.std(df.iloc[time - cycle:time]) * 2
-        lw_bound = SMA - np.std(df.iloc[time - cycle:time]) * 2
+        up_bound = SMA + np.std(data_sr) * 2
+        lw_bound = SMA - np.std(data_sr) * 2
+        midpoint = len(data_sr) // 2
+        res = sum(data_sr[:midpoint] > up_bound) - sum(data_sr[midpoint:] < lw_bound)
         return res
     except KeyError:
         pass
 
 
 
-
-trading_strategies = [PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol]
+trading_strategies = [PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol, MACD, BoolingerBands]
 
 
 def MinVariance(data, ranking, time, cycle):
