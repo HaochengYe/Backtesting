@@ -1,7 +1,7 @@
-# %%
-import numpy as np
-import pandas as pd
+import math
+
 import cvxpy as cp
+import numpy as np
 
 
 # %%
@@ -18,7 +18,7 @@ def PriceReverse(df, cycle, time):
         previous_price = df.iloc[time - cycle]
         return (df.iloc[time] - previous_price) / previous_price
     except KeyError:
-        return None
+        pass
 
 
 def PriceMomentum(df, cycle, time):
@@ -34,7 +34,7 @@ def PriceMomentum(df, cycle, time):
         previous_price = df.iloc[time - 2*cycle]
         return -(df.iloc[time] - previous_price) / previous_price
     except KeyError:
-        return None
+        pass
 
 
 def Price_High_Low(df, cycle, time):
@@ -51,7 +51,7 @@ def Price_High_Low(df, cycle, time):
         Low = min(df.iloc[time - cycle:time])
         return -(High - df.iloc[time]) / (df.iloc[time] - Low)
     except KeyError:
-        return None
+        pass
 
 
 def Vol_Coefficient(df, cycle, time):
@@ -64,11 +64,12 @@ def Vol_Coefficient(df, cycle, time):
     :return: CV_{i,t} = Std(Close_i, cycle) / Ave(Close_i, cycle)
     """
     try:
-        std = np.std(df.iloc[time - cycle:time])
-        avg = np.mean(df.iloc[time - cycle:time])
+        data = df.iloc[time - cycle:time].pct_change(1).dropna()
+        std = np.std(data)
+        avg = np.mean(data)
         return -std / avg
     except KeyError:
-        return None
+        pass
 
 
 def AnnVol(df, cycle, time):
@@ -89,7 +90,7 @@ def AnnVol(df, cycle, time):
         result = np.sqrt(252 / cycle * r_2)
         return -result
     except KeyError:
-        return None
+        pass
 
 
 def MACD(df, cycle, time):
@@ -122,17 +123,20 @@ def BoolingerBands(df, cycle, time):
     :param time: current index for df to look at
     :return: Ave(cycle) +- 2 * Std(cycle)
     """
+    if time - 2 * cycle <= 0 and not math.isnan(df.iloc[time - cycle]):
+        return 0
     try:
-        data_lr = df.iloc[time - 2*cycle:time]
+        data_lr = df.iloc[time - 2*cycle+1:time]
         data_sr = df.iloc[time - cycle:time]
         SMA = data_lr.rolling(cycle).mean()
         SMA.dropna(inplace=True)
-        up_bound = SMA + np.std(data_sr) * 2
-        lw_bound = SMA - np.std(data_sr) * 2
+        delta = np.std(data_sr)
+        up_bound = SMA + delta
+        lw_bound = SMA - delta
         midpoint = len(data_sr) // 2
-        res = sum(data_sr[:midpoint] > up_bound) - sum(data_sr[midpoint:] < lw_bound)
-        return res
-    except KeyError:
+        res = sum(data_sr[:midpoint] > up_bound[:midpoint]) - sum(data_sr[midpoint:] < lw_bound[midpoint:])
+        return res * np.std(data_sr.pct_change(1).dropna())
+    except ValueError:
         pass
 
 
@@ -148,7 +152,7 @@ def MinVariance(data, ranking, time, cycle):
     """
     covar = np.zeros(shape=(len(ranking), cycle))
     for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time + 1 - cycle:time + 1]
+        covar[i] = data[ranking[i]].iloc[time-cycle:time].fillna(method='Backfill')
     inv_cov_matrix = np.linalg.pinv(np.cov(covar))
     ita = np.ones(inv_cov_matrix.shape[0])
     weight = (inv_cov_matrix @ ita) / (ita @ inv_cov_matrix @ ita)
@@ -170,11 +174,11 @@ def MeanVariance_Constraint(data, ranking, time, cycle):
     Mean Variance solved by convex optimization
     return weighting for each stock (in percentageg)
     """
-    covar = np.zeros(shape = (len(ranking), cycle))
+    covar = np.zeros(shape=(len(ranking), cycle))
     for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time+1-cycle:time+1]
+        covar[i] = data[ranking[i]].iloc[time-cycle:time].fillna(method='Backfill')
     cov_matrix = np.cov(covar)
-    weight = cp.Variable(shape = len(ranking))
+    weight = cp.Variable(shape=len(ranking))
     objective = cp.Minimize(cp.quad_form(weight, cov_matrix))
     constraints = [cp.sum(weight) == 1, weight >= 1 / (2 * len(ranking))]
     problem = cp.Problem(objective, constraints)
@@ -190,7 +194,7 @@ def RiskParity(data, ranking, time, cycle):
     """
     covar = np.zeros(shape=(len(ranking), cycle))
     for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time + 1 - cycle:time + 1]
+        covar[i] = data[ranking[i]].iloc[time - cycle:time]
     vol = np.array(covar.std(axis=1))
     vol = np.reciprocal(vol)
     weight = vol / vol.sum()
@@ -198,4 +202,4 @@ def RiskParity(data, ranking, time, cycle):
 
 
 rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
-
+# rebalancing_strategies = [EqualWeight, RiskParity]

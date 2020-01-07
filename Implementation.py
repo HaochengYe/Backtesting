@@ -1,30 +1,16 @@
-import os
-import numpy as np
-import pandas as pd
+import copy
+
 import matplotlib.pyplot as plt
-import cvxpy as cp
-import math
+import pandas as pd
 import seaborn as sns
 
-sns.set()
-import copy
 from Strategy import *
 
-# %%
-df = pd.read_csv("SP500.csv")
-df.drop(['Unnamed: 0'], axis=1, inplace=True)
-print(df.shape)
-ticker = list(df.columns)[1:]
-# rebalance portfolio every month (20 trading days)
-
-INITIAL_BALANCE = 50500
-TRANS_COST = 0.00
-# define the risk-free rate
-RISKFREE = 1.00
+sns.set()
 
 
 # %%
-class Agent():
+class Agent:
 
     def __init__(self, portfolio, data, trading_strategies, rebalancing_strategies, cycle, max_holding):
         """
@@ -55,7 +41,9 @@ class Agent():
         max_holding = self.max_holding
         ranking = {}
         for i in ticker:
-            ranking[i] = trading_strategy(data[i], cycle, time)
+            metric = trading_strategy(data[i], cycle, time)
+            if metric is not None and not math.isnan(metric):
+                ranking[i] = trading_strategy(data[i], cycle, time)
         result = sorted(ranking, key=ranking.get)[:max_holding]
         return result
 
@@ -96,7 +84,7 @@ class Agent():
         shares = np.array(list(portfolio.values()))
         price = np.matrix(data[ticker].iloc[time])
         total_equity += price @ shares
-        return np.asscalar(total_equity)
+        return total_equity.item()
 
     def Trading(self, target_portfolio, time):
         """
@@ -219,25 +207,30 @@ class Agent():
         self.tran_cost = float()
 
 
-# %%
-wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], 20, 10)
+if __name__ == '__main__':
+    df = pd.read_csv("SP500.csv")
+    df.drop(['Unnamed: 0'], axis=1, inplace=True)
+    print(df.shape)
+    ticker = list(df.columns)[1:]
+    # rebalance portfolio every month (20 trading days)
 
-# %%
-return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
+    INITIAL_BALANCE = 51500
+    TRANS_COST = 0.00
+    # define the risk-free rate
+    RISKFREE = 1.00
 
-# %%
-return_chart = return_chart.astype(float)
-plt.title('Return Heatmap')
-sns.heatmap(return_chart, annot=True, square=True, cmap='RdBu')
+    wsw = Agent({'cash': INITIAL_BALANCE}, df[4000:], trading_strategies, rebalancing_strategies[1:], 20, 10)
 
-# %%
-vol_chart = vol_chart.astype(float)
-plt.title('Volatility Heatmap')
-sns.heatmap(vol_chart, annot=True, square=True, cmap='RdBu')
+    return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
-# %%
-sharpe_chart = sharpe_chart.astype(float)
-plt.title('Sharpe Ratio Heatmap')
-sns.heatmap(sharpe_chart, annot=True, square=True, cmap='RdBu')
+    return_chart = return_chart.astype(float)
+    plt.title('Return Heatmap')
+    sns.heatmap(return_chart, annot=True, square=True, cmap='RdBu')
 
-# %%
+    vol_chart = vol_chart.astype(float)
+    plt.title('Volatility Heatmap')
+    sns.heatmap(vol_chart, annot=True, square=True, cmap='RdBu')
+
+    sharpe_chart = sharpe_chart.astype(float)
+    plt.title('Sharpe Ratio Heatmap')
+    sns.heatmap(sharpe_chart, annot=True, square=True, cmap='RdBu')
