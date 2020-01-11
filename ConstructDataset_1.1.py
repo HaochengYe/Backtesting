@@ -60,7 +60,7 @@ def preprocessing(df):
 
 
 if __name__ == '__main__':
-    sp500_constituents = pd.read_csv("constituents_csv.csv")
+    sp500_constituents = pd.read_csv("sp500_constituents.csv")
     sp500_list = sp500_constituents.loc[:, 'Symbol'].tolist()
 
     START = datetime(2001, 1, 1)

@@ -93,6 +93,26 @@ def AnnVol(df, cycle, time):
         pass
 
 
+def MovingAverage(df, cycle, time):
+    """
+    Compute Moving Average:
+    Order: Descending
+    :param df: dataframe object (n*1 vector)
+    :param cycle: how many days to look back to see its reversal
+    :param time: current index for df to look at
+    :return: (MA_10 - Price) + (MA_20 - Price) * 2 + (MA_50 - Price) * 5
+    """
+    try:
+        data = df.iloc[time - cycle:time]
+        MA_10 = list(data.rolling(10).mean())[-1]
+        MA_20 = list(data.rolling(20).mean())[-1]
+        MA_50 = list(data.rolling(50).mean())[-1]
+        res = MA_10 + MA_20 + MA_50 - df.iloc[time]*3
+        return res
+    except KeyError:
+        pass
+
+
 def MACD(df, cycle, time):
     """
     Compute Moving Average Convergence Divergence:
@@ -202,4 +222,3 @@ def RiskParity(data, ranking, time, cycle):
 
 
 rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
-# rebalancing_strategies = [EqualWeight, RiskParity]

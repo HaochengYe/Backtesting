@@ -137,10 +137,8 @@ class Agent:
         """
         cycle = self.cycle
         data = self.data
-        print("Trading strategy: %s" % trading_strategy.__name__)
-        print("\n")
-        print("Rebalancing strategy: %s" % rebalancing_strategy.__name__)
-        print("\n")
+        print("Trading strategy: %s \n" % trading_strategy.__name__)
+        print("Rebalancing strategy: %s \n" % rebalancing_strategy.__name__)
         T = len(data) // cycle
         print("We are rebalancing for %s number of times." % T)
         portfolio_path = []
@@ -173,10 +171,9 @@ class Agent:
             len(trading_strategies), len(rebalancing_strategies)))
         print("They are: ")
         for i in trading_strategies:
-            print("     %s" % i.__name__)
-        print('\n')
+            print("     %s \n" % i.__name__)
         for i in rebalancing_strategies:
-            print("     %s" % i.__name__)
+            print("     %s \n" % i.__name__)
         portfolio_re = pd.DataFrame(index=[x.__name__ for x in rebalancing_strategies],
                                     columns=[x.__name__ for x in trading_strategies])
         portfolio_vol = pd.DataFrame(index=[x.__name__ for x in rebalancing_strategies],
@@ -212,14 +209,13 @@ if __name__ == '__main__':
     df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     ticker = list(df.columns)[1:]
-    # rebalance portfolio every month (20 trading days)
 
     INITIAL_BALANCE = 51500
     TRANS_COST = 0.00
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df[4000:], trading_strategies, rebalancing_strategies[1:], 20, 10)
+    wsw = Agent({'cash': INITIAL_BALANCE}, df[4000:], trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
 
     return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
