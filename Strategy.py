@@ -104,18 +104,19 @@ def MovingAverage(df, cycle, time):
     :param time: current index for df to look at
     :return: (MA_10 - Price) + (MA_20 - Price) * 2 + (MA_50 - Price) * 5
     """
-    if time - 50 <= 0 and not math.isnan(df.iloc[time - cycle]):
+    if time - 50 < 0 and not math.isnan(df.iloc[time - cycle]):
         return 0
-    try:
-        arr = df.iloc[time - 50:time].values
-        cumsum = np.cumsum(np.insert(arr, 0, 0))
-        ma10 = (cumsum[10:] - cumsum[:-10]) / 10
-        ma20 = (cumsum[20:] - cumsum[:-20]) / 20
-        ma50 = (cumsum[50:] - cumsum[:-50]) / 50
-        res = ma10[-1] + ma20[-1] + ma50 - df.iloc[time]*3
-        return res
-    except KeyError:
-        pass
+    elif time - 50 >= 0 and not math.isnan(df.iloc[time - 50]):
+        try:
+            arr = df.iloc[time - 50:time].values
+            cumsum = np.cumsum(np.insert(arr, 0, 0))
+            ma10 = (cumsum[cycle:] - cumsum[:-cycle]) / cycle
+            ma20 = (cumsum[cycle*2:] - cumsum[:-cycle*2]) / 2 / cycle
+            ma50 = (cumsum[50:] - cumsum[:-50]) / 50
+            res = ma10[-1] + ma20[-1] + ma50 - df.iloc[time]*3
+            return res
+        except KeyError:
+            pass
 
 
 def MACD(df, cycle, time):
