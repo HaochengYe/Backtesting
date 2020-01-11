@@ -47,8 +47,9 @@ def Price_High_Low(df, cycle, time):
     :return: HL_{i,t} = (High_{i,t} - Close_{i,t}) / (Close_{i,t} - Low_{i,t})
     """
     try:
-        High = max(df.iloc[time - cycle:time])
-        Low = min(df.iloc[time - cycle:time])
+        arr = df.iloc[time-cycle:time].values
+        High = max(arr)
+        Low = min(arr)
         return -(High - df.iloc[time]) / (df.iloc[time] - Low)
     except KeyError:
         pass
@@ -64,9 +65,10 @@ def Vol_Coefficient(df, cycle, time):
     :return: CV_{i,t} = Std(Close_i, cycle) / Ave(Close_i, cycle)
     """
     try:
-        data = df.iloc[time - cycle:time].pct_change(1).dropna()
-        std = np.std(data)
-        avg = np.mean(data)
+        arr = df.iloc[time - cycle:time].values
+        arr_pct = np.diff(arr) / arr[:len(arr)-1]
+        std = np.std(arr_pct)
+        avg = np.mean(arr_pct)
         return -std / avg
     except KeyError:
         pass
@@ -102,12 +104,15 @@ def MovingAverage(df, cycle, time):
     :param time: current index for df to look at
     :return: (MA_10 - Price) + (MA_20 - Price) * 2 + (MA_50 - Price) * 5
     """
+    if time - 50 <= 0 and not math.isnan(df.iloc[time - cycle]):
+        return 0
     try:
-        data = df.iloc[time - cycle:time]
-        MA_10 = list(data.rolling(10).mean())[-1]
-        MA_20 = list(data.rolling(20).mean())[-1]
-        MA_50 = list(data.rolling(50).mean())[-1]
-        res = MA_10 + MA_20 + MA_50 - df.iloc[time]*3
+        arr = df.iloc[time - 50:time].values
+        cumsum = np.cumsum(np.insert(arr, 0, 0))
+        ma10 = (cumsum[10:] - cumsum[:-10]) / 10
+        ma20 = (cumsum[20:] - cumsum[:-20]) / 20
+        ma50 = (cumsum[50:] - cumsum[:-50]) / 50
+        res = ma10[-1] + ma20[-1] + ma50 - df.iloc[time]*3
         return res
     except KeyError:
         pass
@@ -146,22 +151,24 @@ def BoolingerBands(df, cycle, time):
     if time - 2 * cycle <= 0 and not math.isnan(df.iloc[time - cycle]):
         return 0
     try:
-        data_lr = df.iloc[time - 2*cycle+1:time]
-        data_sr = df.iloc[time - cycle:time]
-        SMA = data_lr.rolling(cycle).mean()
-        SMA.dropna(inplace=True)
-        delta = np.std(data_sr)
-        up_bound = SMA + delta
-        lw_bound = SMA - delta
-        midpoint = len(data_sr) // 2
-        res = sum(data_sr[:midpoint] > up_bound[:midpoint]) - sum(data_sr[midpoint:] < lw_bound[midpoint:])
-        return res * np.std(data_sr.pct_change(1).dropna())
+        arr_lr = df.iloc[time - 2*cycle+1:time].values
+        arr_sr = df.iloc[time - cycle:time].values
+        # moving average for long-run
+        cumsum = np.cumsum(np.insert(arr_lr, 0, 0))
+        ma_cycle = (cumsum[cycle:] - cumsum[:-cycle]) / cycle
+        delta = np.std(arr_sr)
+        up_bound = ma_cycle + delta
+        lw_bound = ma_cycle - delta
+        midpoint = len(arr_sr) // 2
+        res = sum(arr_sr[:midpoint] > up_bound[:midpoint]) - sum(arr_sr[midpoint:] < lw_bound[midpoint:])
+        # calculate pct_change
+        arr_pct = np.diff(arr_sr) / arr_sr[:len(arr_sr)-1]
+        return res * np.std(arr_pct)
     except ValueError:
         pass
 
 
-
-trading_strategies = [PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol, MACD, BoolingerBands]
+trading_strategies = [MovingAverage, PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol, MACD, BoolingerBands]
 
 
 def MinVariance(data, ranking, time, cycle):

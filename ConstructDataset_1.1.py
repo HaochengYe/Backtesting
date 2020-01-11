@@ -64,7 +64,7 @@ if __name__ == '__main__':
     sp500_list = sp500_constituents.loc[:, 'Symbol'].tolist()
 
     START = datetime(2001, 1, 1)
-    END = datetime(2020, 1, 4)
+    END = datetime(2020, 1, 11)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
