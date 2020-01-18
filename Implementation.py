@@ -215,7 +215,7 @@ if __name__ == '__main__':
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
+    wsw = Agent({'cash': INITIAL_BALANCE}, df[4000:], trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
 
     return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
