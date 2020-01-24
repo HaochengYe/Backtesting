@@ -15,10 +15,10 @@ class Agent:
     def __init__(self, portfolio, data, trading_strategies, rebalancing_strategies, cycle, max_holding):
         """
         portfolio: dictionary (accounting book)
-        Max_holding is the maximum number of stocks ths agent can hold
+        Max_holding is the maximum number of stocks this agent can hold
         Cycle is the rebalancing period
         Data is the dataset
-        Strategies is which factor investing stratgy this Agent has in disposal
+        Strategies is which factor investing strategy this Agent has in disposal
         """
         self.portfolio = portfolio
         self.data = data
@@ -215,8 +215,8 @@ if __name__ == '__main__':
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df[4000:], trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
-
+    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
+    '''
     return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
 
     return_chart = return_chart.astype(float)
@@ -230,3 +230,4 @@ if __name__ == '__main__':
     sharpe_chart = sharpe_chart.astype(float)
     plt.title('Sharpe Ratio Heatmap')
     sns.heatmap(sharpe_chart, annot=True, square=True, cmap='RdBu')
+    '''
