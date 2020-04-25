@@ -206,7 +206,7 @@ class Agent:
 
 if __name__ == '__main__':
     df = pd.read_csv("SP500.csv")
-    df.drop(['Unnamed: 0'], axis=1, inplace=True)
+    # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     ticker = list(df.columns)[1:]
 
@@ -215,10 +215,10 @@ if __name__ == '__main__':
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], cycle=10, max_holding=20)
-    '''
-    return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
+    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], cycle=20, max_holding=20)
 
+    return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
+    '''
     return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')
     sns.heatmap(return_chart, annot=True, square=True, cmap='RdBu')

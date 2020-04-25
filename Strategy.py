@@ -1,6 +1,5 @@
 import math
 
-import cvxpy as cp
 import numpy as np
 
 
@@ -197,22 +196,6 @@ def EqualWeight(data, ranking, time, cycle):
     return weight
 
 
-def MeanVariance_Constraint(data, ranking, time, cycle):
-    """
-    Mean Variance solved by convex optimization
-    return weighting for each stock (in percentageg)
-    """
-    covar = np.zeros(shape=(len(ranking), cycle))
-    for i in range(len(ranking)):
-        covar[i] = data[ranking[i]].iloc[time-cycle:time].fillna(method='Backfill')
-    cov_matrix = np.cov(covar)
-    weight = cp.Variable(shape=len(ranking))
-    objective = cp.Minimize(cp.quad_form(weight, cov_matrix))
-    constraints = [cp.sum(weight) == 1, weight >= 1 / (2 * len(ranking))]
-    problem = cp.Problem(objective, constraints)
-    result = problem.solve()
-    return weight.value
-
 
 def RiskParity(data, ranking, time, cycle):
     """
@@ -229,4 +212,4 @@ def RiskParity(data, ranking, time, cycle):
     return weight
 
 
-rebalancing_strategies = [MinVariance, EqualWeight, MeanVariance_Constraint, RiskParity]
+rebalancing_strategies = [MinVariance, EqualWeight, RiskParity]

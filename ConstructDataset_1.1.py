@@ -18,19 +18,19 @@ def init_logging():
     return None
 
 
-def data_collection(ticker_list, del_col):
-    master = pd.DataFrame(columns=['Date'])
+def data_collection(ticker_list, del_col, start, end):
+    total = []
     for ticker in ticker_list:
         try:
             temp = yf.Ticker(ticker)
-            hist_temp = temp.history(start=START, end=END)
-            if len(hist_temp) >= 1500:
+            hist_temp = temp.history(start=start, end=end)
+            if hist_temp.shape[0] >= 1500:
                 hist_temp.drop(del_col, axis=1, inplace=True)
                 hist_temp.columns = [ticker]
-                master = pd.merge(master, hist_temp, on='Date', how='outer')
                 status = "Successfully retrieve {}'s data.".format(ticker)
                 print(status)
                 logging.info(status)
+                total.append(hist_temp)
             else:
                 status = "Insufficient data for {}.".format(ticker)
                 print(status)
@@ -40,35 +40,19 @@ def data_collection(ticker_list, del_col):
             print(status)
             logging.info(status)
             pass
-    cutoff = master[master.columns[2]].last_valid_index()
-    master = master.iloc[:cutoff+1]
-    return master
-
-
-def preprocessing(df):
-    del_ticker = []
-    for ticker in df.columns[1:]:
-        start = df[ticker].first_valid_index()
-        dta = df[ticker].iloc[start:]
-        if sum(dta.isna()) != 0:
-            del_ticker.append(ticker)
-    df.drop(del_ticker, axis=1, inplace=True)
-    status = 'These tickers are dropped due to non-consecutive data series: {}'.format(del_ticker)
-    print(status)
-    logging.info(status)
-    return df
+    return total
 
 
 if __name__ == '__main__':
-    sp500_constituents = pd.read_csv("sp500_constituents.csv")
-    sp500_list = sp500_constituents.loc[:, 'Symbol'].tolist()
+    txt_file = open('ticker_list.txt', 'r')
+    sp500_list = [line.rstrip('\n') for line in txt_file]
 
-    START = datetime(2001, 1, 1)
-    END = datetime(2020, 1, 21)
+    START = datetime(1980, 1, 1)
+    END = datetime(2020, 4, 23)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
     init_logging()
-    raw = data_collection(sp500_list, sp500_del_col)
-    df = preprocessing(raw)
+    raw = data_collection(sp500_list, sp500_del_col, START, END)
+    df = pd.concat(raw, axis=1)
     df.to_csv('sp500.csv')
