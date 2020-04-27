@@ -29,10 +29,10 @@ def dta_to_candlestick(data):
                                          low=data.Low,
                                          close=data.Close)],
                     layout=layout)
-    fig.write_image("fig.png")
+    fig.write_image("images/fig.png")
 
     # Convert to numpy array
-    im = Image.open('fig.png')
+    im = Image.open('images/fig.png')
     data = np.asarray(im)
 
     # Return the first channel of the image
@@ -74,4 +74,18 @@ END = datetime(2020, 4, 23)
 for ticker in sp500_list:
     tic = yf.Ticker(ticker)
     hist = tic.history(start=START, end=END)
-    x, y = dta_transformation(hist, 30)
+    if hist.shape[0] != 0:
+        x, y = dta_transformation(hist, 30)
+        dta_x = np.stack(x, axis=2)
+        np.save('images_npy/{}_x.npy'.format(ticker), dta_x)
+        np.save('images_npy/{}_y.npy'.format(ticker), y)
+
+        print("\n")
+        print("{} Done!".format(ticker))
+        print("\n")
+
+    else:
+        print("\n")
+        print("{} No Data!".format(ticker))
+        print("\n")
+
