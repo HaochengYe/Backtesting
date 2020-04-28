@@ -71,7 +71,7 @@ sp500_list = [line.rstrip('\n') for line in txt_file]
 START = datetime(1980, 1, 1)
 END = datetime(2020, 4, 23)
 
-for ticker in sp500_list:
+for ticker in sp500_list[400:]:
     tic = yf.Ticker(ticker)
     hist = tic.history(start=START, end=END)
     if hist.shape[0] != 0:
