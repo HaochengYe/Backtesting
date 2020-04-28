@@ -21,6 +21,8 @@ def dta_to_candlestick(data):
                        yaxis=dict(ticks='',
                                   showgrid=False,
                                   showticklabels=False),
+                       width=500,
+                       height=500,
                        paper_bgcolor='rgba(0,0,0,0)',
                        plot_bgcolor='rgba(0,0,0,0)')
     fig = go.Figure(data=[go.Candlestick(x=np.linspace(1,l,l),
@@ -71,7 +73,7 @@ sp500_list = [line.rstrip('\n') for line in txt_file]
 START = datetime(1980, 1, 1)
 END = datetime(2020, 4, 23)
 
-for ticker in sp500_list:
+for ticker in sp500_list[600]:
     tic = yf.Ticker(ticker)
     hist = tic.history(start=START, end=END)
     if hist.shape[0] != 0:
