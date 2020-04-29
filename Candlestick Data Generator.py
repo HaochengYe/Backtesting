@@ -21,8 +21,8 @@ def dta_to_candlestick(data):
                        yaxis=dict(ticks='',
                                   showgrid=False,
                                   showticklabels=False),
-                       width=500,
-                       height=500,
+                       #width=500,
+                       #height=500,
                        paper_bgcolor='rgba(0,0,0,0)',
                        plot_bgcolor='rgba(0,0,0,0)')
     fig = go.Figure(data=[go.Candlestick(x=np.linspace(1,l,l),
