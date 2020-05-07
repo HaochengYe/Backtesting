@@ -147,10 +147,17 @@ class ResNetDecoder(nn.Module):
         self.decoder = nn.ModuleList([
             nn.Linear(in_features, 500),
             nn.Dropout2d(0.5),
+            nn.ReLU(),
             nn.Linear(500, 100),
             nn.Dropout2d(0.5),
-            nn.Linear(100, 25)
+            nn.ReLU(),
+            nn.Linear(100, 25),
+            nn.Dropout2d(0.5),
+            nn.ReLU(),
+            nn.Linear(25,1),
+            nn.Sigmoid()
         ])
+        
 
     def forward(self, x):
         x = self.avg(x)
