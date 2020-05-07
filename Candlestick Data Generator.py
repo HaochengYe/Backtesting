@@ -79,8 +79,7 @@ for ticker in sp500_list[600]:
     if hist.shape[0] != 0:
         x, y = dta_transformation(hist, 30)
         dta_x = np.stack(x, axis=2)
-        np.save('images_npy/{}_x.npy'.format(ticker), dta_x)
-        np.save('images_npy/{}_y.npy'.format(ticker), y)
+        np.savez_compressed('images_npy/{}_x_y', x=dta_x, y=np.array(y))
 
         print("\n")
         print("{} Done!".format(ticker))
