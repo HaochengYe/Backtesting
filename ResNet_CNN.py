@@ -4,7 +4,6 @@ from torch.optim import Adam
 from torch import nn
 import torchvision
 from functools import partial
-from dataclasses import dataclass
 from collections import OrderedDict
 
 
