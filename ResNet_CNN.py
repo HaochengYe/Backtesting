@@ -81,7 +81,7 @@ class ResNetBasicBlock(ResNetResidualBlock):
 
 
 class ResNetBottleNeckBlock(ResNetResidualBlock):
-    expansion = 4
+    expansion = 1
 
     def __init__(self, in_channels, out_channels, *args, **kwargs):
         super().__init__(in_channels, out_channels, expansion=4, *args, **kwargs)
@@ -108,7 +108,7 @@ class ResNetLayer(nn.Module):
 
 
 class ResNetEncoder(nn.Module):
-    def __init__(self, in_channels=3, blocks_sizes=[64, 128, 256, 512], deepths=[1, 1, 1, 1], activation='relu',
+    def __init__(self, in_channels=1, blocks_sizes=[64, 128, 256], deepths=[1, 1, 1], activation='relu',
                  block=ResNetBottleNeckBlock, *args, **kwargs):
         super().__init__()
         self.block_sizes = blocks_sizes
@@ -144,16 +144,13 @@ class ResNetDecoder(nn.Module):
         super().__init__()
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.decoder = nn.ModuleList([
-            nn.Linear(in_features, 500),
-            nn.Dropout2d(0.5),
-            nn.ReLU(),
-            nn.Linear(500, 100),
+            nn.Linear(in_features, 100),
             nn.Dropout2d(0.5),
             nn.ReLU(),
             nn.Linear(100, 25),
             nn.Dropout2d(0.5),
             nn.ReLU(),
-            nn.Linear(25,1),
+            nn.Linear(25, 1),
             nn.Sigmoid()
         ])
         
@@ -180,4 +177,4 @@ class ResNet(nn.Module):
 
 
 def res_conv1(in_channels, n_classes, block=ResNetBottleNeckBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1, 1, 1], *args, **kwargs)
+    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1, 1], *args, **kwargs)
