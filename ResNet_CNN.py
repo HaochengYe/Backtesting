@@ -93,7 +93,7 @@ class ResNetBottleNeckBlock(ResNetResidualBlock):
             conv_bn(self.out_channels, self.expanded_channels, self.conv, kernel_size=1), )
 
 
-class ResNetLayer(nn.Module):
+class (nn.Module):
     def __init__(self, in_channels, out_channels, block=ResNetBottleNeckBlock, n=1, *args, **kwargs):
         super().__init__()
         downsampling = 2 if in_channels != out_channels else 1
