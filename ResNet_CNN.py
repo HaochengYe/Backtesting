@@ -26,7 +26,7 @@ def activation_func(activation):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, activation='relu'):
+    def __init__(self, in_channels, out_channels, activation='leaky_relu'):
         super().__init__()
         self.in_channels, self.out_channels, self.activation = in_channels, out_channels, activation
         self.blocks = nn.Identity()
@@ -108,7 +108,7 @@ class ResNetLayer(nn.Module):
 
 
 class ResNetEncoder(nn.Module):
-    def __init__(self, in_channels=1, blocks_sizes=[32, 64, 128], deepths=[1, 1, 1], activation='relu',
+    def __init__(self, in_channels=1, blocks_sizes=[64, 128], deepths=[1, 1], activation='leaky_relu',
                  block=ResNetBottleNeckBlock, *args, **kwargs):
         super().__init__()
         self.block_sizes = blocks_sizes
@@ -177,4 +177,4 @@ class ResNet(nn.Module):
 
 
 def res_conv1(in_channels, n_classes, block=ResNetBottleNeckBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1, 1], *args, **kwargs)
+    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1], *args, **kwargs)
