@@ -10,6 +10,17 @@ from PIL import Image
 
 import matplotlib.pyplot as plt
 
+def init_logging():
+    global tz
+    tz = pytz.timezone('US/Eastern')
+    if not os.path.exists('log'):
+        os.makedirs('log')
+
+    date = datetime.now(tz).date().strftime('%Y%m%d')
+    logging.basicConfig(filename='log/{}.log'.format(date), level=logging.INFO)
+
+    return None
+
 
 def dta_to_candlestick(data):
     l = len(data)
@@ -21,8 +32,8 @@ def dta_to_candlestick(data):
                        yaxis=dict(ticks='',
                                   showgrid=False,
                                   showticklabels=False),
-                       #width=500,
-                       #height=500,
+                       width=256,
+                       height=256,
                        paper_bgcolor='rgba(0,0,0,0)',
                        plot_bgcolor='rgba(0,0,0,0)')
     fig = go.Figure(data=[go.Candlestick(x=np.linspace(1,l,l),
@@ -35,6 +46,8 @@ def dta_to_candlestick(data):
 
     # Convert to numpy array
     im = Image.open('images/fig.png')
+
+    # im = im.resize((300,300),Image.ANTIALIAS)
     data = np.asarray(im)
 
     # Return the first channel of the image
@@ -67,26 +80,42 @@ def dta_transformation(data, est_h):
     return x, y
 
 
-txt_file = open('ticker_list.txt', 'r')
-sp500_list = [line.rstrip('\n') for line in txt_file]
+if __name__ == '__main__':
 
-START = datetime(1980, 1, 1)
-END = datetime(2020, 4, 23)
+    txt_file = open('ticker_list.txt', 'r')
+    sp500_list = [line.rstrip('\n') for line in txt_file]
 
-for ticker in sp500_list[600]:
-    tic = yf.Ticker(ticker)
-    hist = tic.history(start=START, end=END)
-    if hist.shape[0] != 0:
-        x, y = dta_transformation(hist, 30)
-        dta_x = np.stack(x, axis=2)
-        np.savez_compressed('images_npy/{}_x_y', x=dta_x, y=np.array(y))
+    START = datetime(1980, 1, 1)
+    END = datetime(2020, 4, 23)
+    init_logging()
 
-        print("\n")
-        print("{} Done!".format(ticker))
-        print("\n")
+    for ticker in sp500_list[:10]:
+        tic = yf.Ticker(ticker)
+        hist = tic.history(start=START, end=END)
+        if hist.shape[0] > 1000:
+            x, y = dta_transformation(hist, 10)
+            x = np.stack(x, axis=2)
 
-    else:
-        print("\n")
-        print("{} No Data!".format(ticker))
-        print("\n")
+            L = x.shape[2] // 1000
+            remainder = x.shape[2] % 1000
+
+            for i in range(L):
+                sub_x = x[:, :, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
+                sub_y = y[(1000 * i + remainder):(1000 * (i + 1) + remainder)]
+                if not os.path.exists('images_npy/{}'.format(ticker)):
+                    os.makedirs('images_npy/{}'.format(ticker))
+                np.savez_compressed('images_npy/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
+
+            print("\n")
+            status = "Successfully retrieve {}'s data.".format(ticker)
+            print(status)
+            logging.info(status)
+            print("\n")
+
+        else:
+            print("\n")
+            status = "Insufficient data for {}.".format(ticker)
+            print(status)
+            logging.info(status)
+            print("\n")
 
