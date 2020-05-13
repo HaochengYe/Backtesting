@@ -10,6 +10,7 @@ from PIL import Image
 
 import matplotlib.pyplot as plt
 
+
 def init_logging():
     global tz
     tz = pytz.timezone('US/Eastern')

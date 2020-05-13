@@ -2,3 +2,7 @@ INFO:root:Insufficient data for PSG.
 INFO:numexpr.utils:NumExpr defaulting to 8 threads.
 INFO:root:Successfully retrieve NKE's data.
 INFO:root:Successfully retrieve DDS's data.
+INFO:root:Successfully retrieve IPG's data.
+INFO:root:Successfully retrieve LLY's data.
+INFO:root:Successfully retrieve MTG's data.
+INFO:root:Successfully retrieve NAVI's data.

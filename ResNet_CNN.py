@@ -153,7 +153,6 @@ class ResNetDecoder(nn.Module):
             nn.Linear(25, 1),
             nn.Sigmoid()
         ])
-        
 
     def forward(self, x):
         x = self.avg(x)
