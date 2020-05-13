@@ -94,7 +94,7 @@ class ResNetBottleNeckBlock(ResNetResidualBlock):
 
 
 class ResNetLayer(nn.Module):
-    def __init__(self, in_channels, out_channels, block=ResNetBottleNeckBlock, n=1, *args, **kwargs):
+    def __init__(self, in_channels, out_channels, block=ResNetBasicBlock, n=1, *args, **kwargs):
         super().__init__()
         downsampling = 2 if in_channels != out_channels else 1
         self.blocks = nn.Sequential(
@@ -109,7 +109,7 @@ class ResNetLayer(nn.Module):
 
 class ResNetEncoder(nn.Module):
     def __init__(self, in_channels=1, blocks_sizes=[64, 128], deepths=[1, 1], activation='leaky_relu',
-                 block=ResNetBottleNeckBlock, *args, **kwargs):
+                 block=ResNetBasicBlock, *args, **kwargs):
         super().__init__()
         self.block_sizes = blocks_sizes
 
@@ -176,5 +176,5 @@ class ResNet(nn.Module):
         return x
 
 
-def res_conv1(in_channels, n_classes, block=ResNetBottleNeckBlock, *args, **kwargs):
+def res_conv1(in_channels, n_classes, block=ResNetBasicBlock, *args, **kwargs):
     return ResNet(in_channels, n_classes, block=block, deepths=[1, 1], *args, **kwargs)
