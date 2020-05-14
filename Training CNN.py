@@ -23,16 +23,17 @@ def dataLoader(path):
 
 
 def data_preprocessing(X, Y):
-    X = X.reshape((-1, 256, 256)).astype(np.float32)
+    d = X.shape[0]
+    X = X.reshape((-1, d, d)).astype(np.float32)
     Y = Y.reshape((-1, 1)).astype(np.float32)
     train_X, val_X, train_Y, val_Y = train_test_split(X, Y, test_size=0.1, random_state=42)
     print((train_X.shape, train_Y.shape), (val_X.shape, val_Y.shape))
 
-    train_X = train_X.reshape(-1, 1, 256, 256)
+    train_X = train_X.reshape(-1, 1, d, d)
     train_X = torch.from_numpy(train_X)
     train_Y = torch.from_numpy(train_Y)
 
-    val_X = val_X.reshape(-1, 1, 256, 256)
+    val_X = val_X.reshape(-1, 1, d, d)
     val_X = torch.from_numpy(val_X)
     val_Y = torch.from_numpy(val_Y)
 
