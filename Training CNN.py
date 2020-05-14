@@ -56,13 +56,12 @@ def train(epochs):
 
     loss_train.backward()
     optimizer.step()
-    gc.collect()
+    #gc.collect()
 
     print('Epoch: ', epochs + 1, '\t', 'train loss: ', loss_train, '\t', 'val loss: ', loss_val)
 
 
 if __name__ == '__main__':
-
     ticker_list = os.listdir('D:/GitHub/Backtesting/images_npy')
     model = res_conv1(1, 64)
     lr = 0.0001
@@ -75,19 +74,20 @@ if __name__ == '__main__':
     for comp in ticker_list:
         ticker_dta = os.listdir('D:/GitHub/Backtesting/images_npy/{}'.format(comp))
         for dta in ticker_dta:
-            try:
-                path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
-                dta_x, dta_y = dataLoader(path)
-                print("Train on {}".format(dta))
-                # Begin training
+            #try:
+            path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
+            dta_x, dta_y = dataLoader(path)
+            print("Train on {}".format(dta))
+            # Begin training
 
-                train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
-                gc.collect()
+            train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
+            #gc.collect()
 
-                train(0)
-
+            train(0)
+'''
             except RuntimeError:
                 model_path = './cnn_res.pth'
                 torch.save(model.state_dict(), model_path)
                 print("{} breaks the computer!!!".format(dta))
                 break
+'''
