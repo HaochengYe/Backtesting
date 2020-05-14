@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
     if os.path.exists('cnn_res.pth'):
         model.load_state_dict(torch.load('./cnn_res.pth'))
+        print("Reload model completed!")
 
     try:
         for comp in ticker_list:
