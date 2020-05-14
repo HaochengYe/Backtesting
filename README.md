@@ -32,3 +32,12 @@ It can also generate heatmaps to help visualize the return, volatility and Sharp
 2. Integration of strategies: Aggregate strategy performances by aggregating time relevance
 3. Better source of data
 4. Better visualization to illustrate the time relevance of these strategies.
+
+
+## Note:
+Generating :400 ticker_list into candlestick data
+
+18-100
+109-200
+208-300
+308-400

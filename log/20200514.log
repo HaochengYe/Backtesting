@@ -1,0 +1,50 @@
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:root:Successfully retrieve PLU's data.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:root:Successfully retrieve LDOS's data.
+INFO:root:Successfully retrieve DNR's data.
+INFO:root:Successfully retrieve CCL's data.
+INFO:root:Insufficient data for CFIP.
+INFO:root:Successfully retrieve WTR's data.
+INFO:root:Successfully retrieve ADI's data.
+INFO:root:Successfully retrieve EBAY's data.
+INFO:root:Successfully retrieve ORCL's data.
+INFO:root:Successfully retrieve TGNA's data.
+INFO:root:Successfully retrieve ABC's data.
+INFO:root:Successfully retrieve NCR's data.
+INFO:root:Successfully retrieve RIG's data.
+INFO:root:Successfully retrieve ALL's data.
+INFO:root:Successfully retrieve SJM's data.
+INFO:root:Successfully retrieve S's data.
+INFO:root:Insufficient data for HFSB.
+INFO:root:Successfully retrieve NWSA's data.
+INFO:root:Successfully retrieve AON's data.
+INFO:root:Successfully retrieve M's data.
+INFO:root:Insufficient data for CUCD.
+INFO:root:Insufficient data for ACT.
+INFO:root:Insufficient data for WYN.
+INFO:root:Successfully retrieve ROK's data.
+INFO:root:Insufficient data for WAG.
+INFO:root:Successfully retrieve GME's data.
+INFO:root:Successfully retrieve CCEP's data.
+INFO:root:Successfully retrieve CMCSA's data.
+INFO:root:Successfully retrieve CHV's data.
+INFO:root:Successfully retrieve IRM's data.
+INFO:root:Successfully retrieve NSP's data.
+INFO:root:Successfully retrieve GILD's data.
+INFO:root:Successfully retrieve SHW's data.
+INFO:root:Successfully retrieve EOG's data.
+INFO:root:Successfully retrieve COL's data.
+INFO:root:Successfully retrieve CSCO's data.
+INFO:root:Insufficient data for CHHC.
+INFO:root:Successfully retrieve ROP's data.
+INFO:root:Successfully retrieve STA's data.
+INFO:root:Insufficient data for TMPW.
+INFO:root:Insufficient data for BTU.
+INFO:root:Insufficient data for IACI.
+INFO:root:Successfully retrieve SRCL's data.
