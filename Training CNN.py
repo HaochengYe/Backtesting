@@ -70,6 +70,10 @@ if __name__ == '__main__':
 
     train_losses = []
     val_losses = []
+
+    if os.path.exists('cnn_res.pth'):
+        model.load_state_dict(torch.load('./cnn_res.pth'))
+
     try:
         for comp in ticker_list:
             ticker_dta = os.listdir('D:/GitHub/Backtesting/images_npy/{}'.format(comp))
