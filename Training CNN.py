@@ -89,7 +89,13 @@ if __name__ == '__main__':
                 train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
                 gc.collect()
 
-                train(1)
+                for epoch in range(10):
+                    train(epoch)
+
+                model_path = './cnn_res.pth'
+                torch.save(model.state_dict(), model_path)
+
+
     except RuntimeError:
         model_path = './cnn_res.pth'
         torch.save(model.state_dict(), model_path)
