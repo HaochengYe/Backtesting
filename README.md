@@ -37,7 +37,7 @@ It can also generate heatmaps to help visualize the return, volatility and Sharp
 ## Note:
 Generating :400 ticker_list into candlestick data
 
-18-100
-108-200
-208-300
-307-400
+37-100
+129-200
+227-300
+306-400
