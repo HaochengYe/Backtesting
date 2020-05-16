@@ -108,7 +108,7 @@ class ResNetLayer(nn.Module):
 
 
 class ResNetEncoder(nn.Module):
-    def __init__(self, in_channels=1, blocks_sizes=[64, 128], deepths=[1, 1], activation='leaky_relu',
+    def __init__(self, in_channels=1, blocks_sizes=[64, 128, 256, 512], deepths=[1, 1, 1, 1], activation='leaky_relu',
                  block=ResNetBasicBlock, *args, **kwargs):
         super().__init__()
         self.block_sizes = blocks_sizes
@@ -176,4 +176,4 @@ class ResNet(nn.Module):
 
 
 def res_conv1(in_channels, n_classes, block=ResNetBasicBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1], *args, **kwargs)
+    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1, 1, 1], *args, **kwargs)
