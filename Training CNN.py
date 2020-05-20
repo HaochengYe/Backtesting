@@ -70,7 +70,7 @@ def visualize_train_val(train_losses, val_losses):
 
 
 if __name__ == '__main__':
-    ticker_list = os.listdir('D:/GitHub/Backtesting/images_npy')
+    ticker_list = os.listdir('C:/Users/Andyy/Documents/GitHub/Backtesting/images_npy')
     model = res_conv1(1, 256)
     lr = 0.0001
     optimizer = Adam(model.parameters(), lr=lr)
@@ -82,9 +82,9 @@ if __name__ == '__main__':
 
     try:
         for comp in ticker_list:
-            ticker_dta = os.listdir('D:/GitHub/Backtesting/images_npy/{}'.format(comp))
+            ticker_dta = os.listdir('C:/Users/Andyy/Documents/GitHub/Backtesting/images_npy/{}'.format(comp))
             for dta in ticker_dta:
-                path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
+                path = 'C:/Users/Andyy/Documents/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
                 dta_x, dta_y = dataLoader(path)
                 print("Train on {}!".format(dta))
                 print(dta_x.shape, dta_y.shape)
