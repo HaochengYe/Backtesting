@@ -71,13 +71,13 @@ def visualize_train_val(train_losses, val_losses):
 
 if __name__ == '__main__':
     ticker_list = os.listdir('D:/GitHub/Backtesting/images_npy')
-    model = res_conv1(1, 64)
+    model = res_conv1(1, 256)
     lr = 0.0001
     optimizer = Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
 
-    if os.path.exists('cnn_res_4_layers.pth'):
-        model.load_state_dict(torch.load('./cnn_res_4_layers.pth'))
+    if os.path.exists('cnn_res_lstm.pth'):
+        model.load_state_dict(torch.load('./cnn_res_lstm.pth'))
         print("Reload model completed!")
 
     try:
@@ -100,12 +100,12 @@ if __name__ == '__main__':
 
                 # visualize_train_val(train_losses, val_losses)
 
-                model_path = './cnn_res_4_layers.pth'
+                model_path = './cnn_res_lstm.pth'
                 torch.save(model.state_dict(), model_path)
 
                 print("Finished training on {}!".format(dta))
 
     except RuntimeError:
-        model_path = './cnn_res_4_layers.pth'
+        model_path = './cnn_res_lstm.pth'
         torch.save(model.state_dict(), model_path)
         print("Breaks the computer!!!")
