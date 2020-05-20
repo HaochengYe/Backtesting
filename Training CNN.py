@@ -87,16 +87,15 @@ if __name__ == '__main__':
 
                 path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
                 dta_x, dta_y = dataLoader(path)
-                print("Train on {} !".format(dta))
+                print("Train on {}!".format(dta))
                 # Begin training
-
-                train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
-                gc.collect()
 
                 train_losses = []
                 val_losses = []
 
-                for epoch in range(20):
+                for epoch in range(10):
+                    train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
+                    gc.collect()
                     train(epoch)
 
                 # visualize_train_val(train_losses, val_losses)
@@ -104,7 +103,7 @@ if __name__ == '__main__':
                 model_path = './cnn_res_4_layers.pth'
                 torch.save(model.state_dict(), model_path)
 
-                print("Finished training on {} !".format(dta))
+                print("Finished training on {}!".format(dta))
 
     except RuntimeError:
         model_path = './cnn_res_4_layers.pth'
