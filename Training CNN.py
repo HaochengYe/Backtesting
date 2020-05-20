@@ -72,8 +72,8 @@ if __name__ == '__main__':
     train_losses = []
     val_losses = []
 
-    if os.path.exists('cnn_res.pth'):
-        model.load_state_dict(torch.load('./cnn_res.pth'))
+    if os.path.exists('cnn_res_4_layers.pth'):
+        model.load_state_dict(torch.load('./cnn_res_4_layers.pth'))
         print("Reload model completed!")
 
     try:
@@ -83,20 +83,22 @@ if __name__ == '__main__':
 
                 path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
                 dta_x, dta_y = dataLoader(path)
-                print("Train on {}".format(dta))
+                print("Train on {} !".format(dta))
                 # Begin training
 
                 train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
                 gc.collect()
 
-                for epoch in range(10):
+                for epoch in range(20):
                     train(epoch)
 
-                model_path = './cnn_res.pth'
+                model_path = './cnn_res_4_layers.pth'
                 torch.save(model.state_dict(), model_path)
+
+                print("Finished training on {} !".format(dta))
 
 
     except RuntimeError:
-        model_path = './cnn_res.pth'
+        model_path = './cnn_res_4_layers.pth'
         torch.save(model.state_dict(), model_path)
         print("Breaks the computer!!!")
