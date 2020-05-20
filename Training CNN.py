@@ -97,7 +97,6 @@ if __name__ == '__main__':
 
                 print("Finished training on {} !".format(dta))
 
-
     except RuntimeError:
         model_path = './cnn_res_4_layers.pth'
         torch.save(model.state_dict(), model_path)
