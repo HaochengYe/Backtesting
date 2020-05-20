@@ -1,0 +1,29 @@
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:numexpr.utils:NumExpr defaulting to 8 threads.
+INFO:root:Successfully retrieve BKNG's data.
+INFO:root:Insufficient data for OMCM.
+INFO:root:Successfully retrieve IFF's data.
+INFO:root:Insufficient data for BPR.
+INFO:root:Successfully retrieve OKE's data.
+INFO:root:Successfully retrieve LNC's data.
+INFO:root:Successfully retrieve VAR's data.
+INFO:root:Successfully retrieve DD's data.
+INFO:root:Successfully retrieve WYND's data.
+INFO:root:Insufficient data for WLP.
+INFO:root:Successfully retrieve CAG's data.
+INFO:root:Insufficient data for FTEN.
+INFO:root:Insufficient data for ZY.
+INFO:root:Insufficient data for ATTW.
+INFO:root:Successfully retrieve CHK's data.
+INFO:root:Successfully retrieve CAT's data.
+INFO:root:Insufficient data for FBS.
+INFO:root:Successfully retrieve HD's data.
+INFO:root:Successfully retrieve MA's data.
+INFO:root:Insufficient data for MWD.
+INFO:root:Insufficient data for SNSTA.
+INFO:root:Insufficient data for MHS.
+INFO:root:Successfully retrieve GE's data.
+INFO:root:Successfully retrieve GRMN's data.
+INFO:root:Successfully retrieve AOC's data.
+INFO:root:Successfully retrieve CBRE's data.

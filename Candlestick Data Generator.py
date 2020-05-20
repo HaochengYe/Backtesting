@@ -90,7 +90,7 @@ if __name__ == '__main__':
     END = datetime(2020, 4, 23)
     init_logging()
 
-    for ticker in sp500_list[227:300]:
+    for ticker in sp500_list[233:300]:
         tic = yf.Ticker(ticker)
         hist = tic.history(start=START, end=END)
         if hist.shape[0] > 1000:
