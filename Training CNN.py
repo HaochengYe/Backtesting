@@ -27,7 +27,7 @@ def data_preprocessing(X, Y):
     X = X.reshape((-1, d, d)).astype(np.float32)
     Y = Y.reshape((-1, 1)).astype(np.float32)
     train_X, val_X, train_Y, val_Y = train_test_split(X, Y, test_size=0.1, random_state=42)
-    print((train_X.shape, train_Y.shape), (val_X.shape, val_Y.shape))
+    # print((train_X.shape, train_Y.shape), (val_X.shape, val_Y.shape))
 
     train_X = train_X.reshape(-1, 1, d, d)
     train_X = torch.from_numpy(train_X)
@@ -59,7 +59,7 @@ def train(epochs):
     optimizer.step()
     gc.collect()
 
-    print('Epoch: ', epochs + 1, '\t', 'train loss: ', loss_train.item(), '\t', 'val loss: ', loss_val.item())
+    print('Epoch: ', epochs + 1, '\t', 'train loss: ', round(loss_train.item(), 4), '\t', 'val loss: ', round(loss_val.item(), 4))
 
 
 def visualize_train_val(train_losses, val_losses):
@@ -84,10 +84,10 @@ if __name__ == '__main__':
         for comp in ticker_list:
             ticker_dta = os.listdir('D:/GitHub/Backtesting/images_npy/{}'.format(comp))
             for dta in ticker_dta:
-
                 path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
                 dta_x, dta_y = dataLoader(path)
                 print("Train on {}!".format(dta))
+                print(dta_x.shape, dta_y.shape)
                 # Begin training
 
                 train_losses = []
