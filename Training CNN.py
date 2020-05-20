@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
 from torch.autograd import Variable
 
 import gc
@@ -52,14 +52,21 @@ def train(epochs):
     loss_train = criterion(output_train, y_train.type(torch.float))
     loss_val = criterion(output_val, y_val.type(torch.float))
 
-    train_losses.append(loss_train)
-    val_losses.append(loss_val)
+    train_losses.append(loss_train.item())
+    val_losses.append(loss_val.item())
 
     loss_train.backward()
     optimizer.step()
     gc.collect()
 
-    print('Epoch: ', epochs + 1, '\t', 'train loss: ', loss_train, '\t', 'val loss: ', loss_val)
+    print('Epoch: ', epochs + 1, '\t', 'train loss: ', loss_train.item(), '\t', 'val loss: ', loss_val.item())
+
+
+def visualize_train_val(train_losses, val_losses):
+    plt.plot(train_losses)
+    plt.plot(val_losses)
+    plt.legend(['Train Loss', 'Val Loss'])
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -68,9 +75,6 @@ if __name__ == '__main__':
     lr = 0.0001
     optimizer = Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
-
-    train_losses = []
-    val_losses = []
 
     if os.path.exists('cnn_res_4_layers.pth'):
         model.load_state_dict(torch.load('./cnn_res_4_layers.pth'))
@@ -89,8 +93,13 @@ if __name__ == '__main__':
                 train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
                 gc.collect()
 
+                train_losses = []
+                val_losses = []
+
                 for epoch in range(20):
                     train(epoch)
+
+                visualize_train_val(train_losses, val_losses)
 
                 model_path = './cnn_res_4_layers.pth'
                 torch.save(model.state_dict(), model_path)
