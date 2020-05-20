@@ -41,3 +41,9 @@ Generating :400 ticker_list into candlestick data
 140-200
 238-300
 306-400
+
+Changing path:
+Laptop:
+D:/GitHub/Backtesting/images_npy/{}/{}
+
+Desktop:
