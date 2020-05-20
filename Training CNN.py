@@ -99,7 +99,7 @@ if __name__ == '__main__':
                 for epoch in range(20):
                     train(epoch)
 
-                visualize_train_val(train_losses, val_losses)
+                # visualize_train_val(train_losses, val_losses)
 
                 model_path = './cnn_res_4_layers.pth'
                 torch.save(model.state_dict(), model_path)
