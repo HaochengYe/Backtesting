@@ -59,7 +59,7 @@ def train(epochs):
     optimizer.step()
     gc.collect()
 
-    print('Epoch: ', epochs + 1, '\t', 'train loss: ', round(loss_train.item(), 4), '\t', 'val loss: ', round(loss_val.item(), 4))
+    print('Epoch: ', epochs + 1, '\t', 'train loss: ', round(loss_train.item(), 6), '\t', 'val loss: ', round(loss_val.item(), 6))
 
 
 def visualize_train_val(train_losses, val_losses):
@@ -72,7 +72,7 @@ def visualize_train_val(train_losses, val_losses):
 if __name__ == '__main__':
     ticker_list = os.listdir('D:/GitHub/Backtesting/images_npy')
     model = res_conv1(1, 256)
-    lr = 0.0001
+    lr = 0.001
     optimizer = Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 train_losses = []
                 val_losses = []
 
-                for epoch in range(10):
+                for epoch in range(5):
                     train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
                     gc.collect()
                     train(epoch)
