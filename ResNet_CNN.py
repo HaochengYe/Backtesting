@@ -5,6 +5,7 @@ from torch import nn
 import torchvision
 from functools import partial
 from collections import OrderedDict
+import torch.nn.functional as F
 
 
 class Conv2dAuto(nn.Conv2d):
@@ -183,11 +184,12 @@ class LSTM(nn.Module):
         # shape of self.hidden: (a, b), where a and b both 
         # have shape (num_layers, batch_size, hidden_dim).
         lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, -1))
-        
+        print(lstm_out.size())
         # Only take the output from the final timetep
         # Can pass on the entirety of lstm_out to the next layer if it is a seq2seq prediction
-        y_pred = self.linear(lstm_out[-1].view(self.batch_size, -1))
-        return y_pred.view(-1)
+        y_pred = self.linear(lstm_out[:, -1, :])
+        y_pred = F.sigmoid(y_pred)
+        return y_pred
 
 
 class ResNet(nn.Module):
