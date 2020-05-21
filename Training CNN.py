@@ -26,7 +26,7 @@ def data_preprocessing(X, Y):
     d = X.shape[0]
     X = X.reshape((-1, d, d)).astype(np.float32)
     Y = Y.reshape((-1, 1)).astype(np.float32)
-    train_X, val_X, train_Y, val_Y = train_test_split(X, Y, test_size=0.1, random_state=42)
+    train_X, val_X, train_Y, val_Y = train_test_split(X, Y, test_size=0.1)
     # print((train_X.shape, train_Y.shape), (val_X.shape, val_Y.shape))
 
     train_X = train_X.reshape(-1, 1, d, d)
