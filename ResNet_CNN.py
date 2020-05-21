@@ -146,7 +146,7 @@ class ResNetDecoder(nn.Module):
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.decoder = nn.ModuleList([
             nn.Linear(in_features, n_classes),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         ])
 
     def forward(self, x):
@@ -184,11 +184,10 @@ class LSTM(nn.Module):
         # shape of self.hidden: (a, b), where a and b both 
         # have shape (num_layers, batch_size, hidden_dim).
         lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, -1))
-        print(lstm_out.size())
         # Only take the output from the final timetep
         # Can pass on the entirety of lstm_out to the next layer if it is a seq2seq prediction
         y_pred = self.linear(lstm_out[:, -1, :])
-        y_pred = F.sigmoid(y_pred)
+        y_pred = torch.sigmoid(y_pred)
         return y_pred
 
 

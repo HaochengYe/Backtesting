@@ -47,3 +47,4 @@ Laptop:
 D:/GitHub/Backtesting/images_npy/{}/{}
 
 Desktop:
+C:/Users/Andyy/Documents/GitHub/Backtesting/images_npy/{}/{}
