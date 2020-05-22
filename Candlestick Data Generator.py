@@ -43,10 +43,10 @@ def dta_to_candlestick(data):
                                          low=data.Low,
                                          close=data.Close)],
                     layout=layout)
-    fig.write_image("images/fig-2.png")
+    fig.write_image("images/fig-1.png")
 
     # Convert to numpy array
-    im = Image.open('images/fig-2.png')
+    im = Image.open('images/fig-1.png')
 
     # im = im.resize((300,300),Image.ANTIALIAS)
     data = np.asarray(im)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
     END = datetime(2020, 4, 23)
     init_logging()
 
-    for ticker in sp500_list[140:200]:
+    for ticker in sp500_list[58:100]:
         tic = yf.Ticker(ticker)
         hist = tic.history(start=START, end=END)
         if hist.shape[0] > 1000:
@@ -103,9 +103,9 @@ if __name__ == '__main__':
             for i in range(L):
                 sub_x = x[:, :, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
                 sub_y = y[(1000 * i + remainder):(1000 * (i + 1) + remainder)]
-                if not os.path.exists('images_npy-2/{}'.format(ticker)):
-                    os.makedirs('images_npy-2/{}'.format(ticker))
-                np.savez_compressed('images_npy-2/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
+                if not os.path.exists('images_npy-1/{}'.format(ticker)):
+                    os.makedirs('images_npy-1/{}'.format(ticker))
+                np.savez_compressed('images_npy-1/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
 
             print("\n")
             status = "Successfully retrieve {}'s data.".format(ticker)
