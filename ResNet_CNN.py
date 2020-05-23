@@ -186,6 +186,7 @@ class LSTM(nn.Module):
         lstm_out, self.hidden = self.lstm(input.view(len(input), self.batch_size, -1))
         # Only take the output from the final timetep
         # Can pass on the entirety of lstm_out to the next layer if it is a seq2seq prediction
+        print(lstm_out.size())
         y_pred = self.linear(lstm_out[:, -1, :])
         y_pred = torch.sigmoid(y_pred)
         return y_pred
