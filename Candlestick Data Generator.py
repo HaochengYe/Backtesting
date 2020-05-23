@@ -8,8 +8,6 @@ import logging
 import plotly.graph_objects as go
 from PIL import Image
 
-import matplotlib.pyplot as plt
-
 
 def init_logging():
     global tz
@@ -85,20 +83,21 @@ def dta_to_candlestick(data):
                        yaxis=dict(ticks='',
                                   showgrid=False,
                                   showticklabels=False),
-                       width=256,
-                       height=256,
+                       width=300,
+                       height=300,
                        paper_bgcolor='rgba(0,0,0,0)',
                        plot_bgcolor='rgba(0,0,0,0)')
+
     fig = go.Figure(data=[go.Candlestick(x=np.linspace(1,l,l),
                                          open=data.Open,
                                          high=data.High,
                                          low=data.Low,
                                          close=data.Close)],
                     layout=layout)
-    fig.write_image("images/fig-1.png")
+    fig.write_image("images/fig-3.png")
 
     # Convert to numpy array
-    im = Image.open('images/fig-1.png')
+    im = Image.open('images/fig-3.png')
 
     # im = im.resize((300,300),Image.ANTIALIAS)
     data = np.asarray(im)
@@ -141,15 +140,15 @@ if __name__ == '__main__':
     txt_file = open('ticker_list.txt', 'r')
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
-    START = datetime(1980, 1, 1)
-    END = datetime(2020, 4, 23)
+    START = datetime(1990, 1, 1)
+    END = datetime(2020, 5, 23)
     init_logging()
 
-    for ticker in sp500_list[58:100]:
+    for ticker in sp500_list[200:300]:
         tic = yf.Ticker(ticker)
         hist = tic.history(start=START, end=END)
         if hist.shape[0] > 1000:
-            x, y = dta_transformation(hist, 10)
+            x, y = dta_transformation(hist, 30)
             x = np.stack(x, axis=2)
             y = np.stack(y, axis=1)
 
@@ -159,9 +158,9 @@ if __name__ == '__main__':
             for i in range(L):
                 sub_x = x[:, :, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
                 sub_y = y[:, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
-                if not os.path.exists('images_npy-1/{}'.format(ticker)):
-                    os.makedirs('images_npy-1/{}'.format(ticker))
-                np.savez_compressed('images_npy-1/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
+                if not os.path.exists('images_npy-3/{}'.format(ticker)):
+                    os.makedirs('images_npy-3/{}'.format(ticker))
+                np.savez_compressed('images_npy-3/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
 
             print("\n")
             status = "Successfully retrieve {}'s data.".format(ticker)
