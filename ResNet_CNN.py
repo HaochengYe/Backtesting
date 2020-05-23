@@ -193,11 +193,11 @@ class LSTM(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, in_channels, n_classes, *args, **kwargs):
+    def __init__(self, in_channels, n_classes, hidden_dim, *args, **kwargs):
         super().__init__()
         self.encoder = ResNetEncoder(in_channels, *args, **kwargs)
         self.decoder = ResNetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels, n_classes)
-        self.LSTM = LSTM(input_dim=n_classes, hidden_dim=64)
+        self.LSTM = LSTM(input_dim=n_classes, hidden_dim=hidden_dim)
 
     def forward(self, x):
         x = self.encoder(x)
@@ -207,5 +207,5 @@ class ResNet(nn.Module):
         return x
 
 
-def res_conv1(in_channels, n_classes, block=ResNetBasicBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, block=block, deepths=[1, 1, 1, 1], *args, **kwargs)
+def res_conv1(in_channels, n_classes, hidden_dim=64, deepths=[1,1,1,1], block_sizes=[64, 128, 256, 512], block=ResNetBasicBlock, *args, **kwargs):
+    return ResNet(in_channels, n_classes, hidden_dim, deepths=deepths, block_sizes=block_sizes, block=block, *args, **kwargs)
