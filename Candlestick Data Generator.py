@@ -23,6 +23,58 @@ def init_logging():
     return None
 
 
+def is_valid(data):
+    # check if the entry is valid
+    if isinstance(data, float):
+        return data
+    else:
+        return 1e-5
+
+
+def momentum_ret(data):
+    x_0 = is_valid(data['Close'][0])
+    x_T = is_valid(data['Close'][-1])
+    mid = data.shape[0] // 2
+    x_t = is_valid(data['Close'][mid])
+    
+    ttl_ret = (x_T - x_0) / x_0
+    half_ret = (x_t - x_0) / x_0
+    return ttl_ret + half_ret
+
+
+def mean_cutoff(data):
+    mu = data['Close'].mean()
+    upr = (data['Close'] > mu).sum()
+    lwr = (data['Close'] <= mu).sum()
+    return upr - lwr
+
+
+def half_return_diff(data):
+    x_0 = is_valid(data['Close'][0])
+    x_T = is_valid(data['Close'][-1])
+    mid = data.shape[0] // 2
+    x_t = is_valid(data['Close'][mid])
+    
+    first_ret = (x_t - x_0) / x_0
+    second_ret = (x_T - x_t) / x_t
+    return second_ret - first_ret
+
+
+def consec_trend(data):
+    arr = np.where(data['Close'] > data['Open'], 1, 0)
+    count_1 = 0
+    count_0 = 0
+
+    for i in range(len(arr)-1):
+        if (arr[i] == 1) & (arr[i+1] == 1):
+            count_1 += 1
+
+        elif (arr[i] == 0) & (arr[i+1] == 0):
+            count_0 += 1
+    
+    return count_1 - count_0
+
+
 def dta_to_candlestick(data):
     l = len(data)
     # Make candlestick picture
