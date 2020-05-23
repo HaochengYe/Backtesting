@@ -207,5 +207,5 @@ class ResNet(nn.Module):
         return x
 
 
-def res_conv1(in_channels, n_classes, hidden_dim=64, deepths=[1,1,1,1], block_sizes=[64, 128, 256, 512], block=ResNetBasicBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, hidden_dim, deepths=deepths, block_sizes=block_sizes, block=block, *args, **kwargs)
+def res_conv1(in_channels, n_classes, hidden_dim=64, deepths=[1,1,1,1], blocks_sizes=[64, 128, 256, 512], block=ResNetBasicBlock, *args, **kwargs):
+    return ResNet(in_channels, n_classes, hidden_dim, deepths=deepths, blocks_sizes=blocks_sizes, block=block, *args, **kwargs)

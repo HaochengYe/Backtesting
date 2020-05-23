@@ -70,21 +70,21 @@ def visualize_train_val(train_losses, val_losses):
 
 
 if __name__ == '__main__':
-    ticker_list = os.listdir('D:/GitHub/Backtesting/images_npy')
-    model = res_conv1(1, 256)
+    ticker_list = os.listdir('D:/GitHub/Backtesting/Trained Data')
+    model = res_conv1(1, 32, 16, deepths=[1,1], blocks_sizes=[64,128])
     lr = 0.001
     optimizer = Adam(model.parameters(), lr=lr)
     criterion = nn.BCELoss()
 
-    if os.path.exists('cnn_res_lstm.pth'):
-        model.load_state_dict(torch.load('./cnn_res_lstm.pth'))
+    if os.path.exists('cnn_res_lstm_simple.pth'):
+        model.load_state_dict(torch.load('./cnn_res_lstm_simple.pth'))
         print("Reload model completed!")
 
     try:
         for comp in ticker_list:
-            ticker_dta = os.listdir('D:/GitHub/Backtesting/images_npy/{}'.format(comp))
+            ticker_dta = os.listdir('D:/GitHub/Backtesting/Trained Data/{}'.format(comp))
             for dta in ticker_dta:
-                path = 'D:/GitHub/Backtesting/images_npy/{}/{}'.format(comp, dta)
+                path = 'D:/GitHub/Backtesting/Trained Data/{}/{}'.format(comp, dta)
                 dta_x, dta_y = dataLoader(path)
                 print("Train on {}!".format(dta))
                 print(dta_x.shape, dta_y.shape)
@@ -100,12 +100,12 @@ if __name__ == '__main__':
 
                 # visualize_train_val(train_losses, val_losses)
 
-                model_path = './cnn_res_lstm.pth'
+                model_path = './cnn_res_lstm_simple.pth'
                 torch.save(model.state_dict(), model_path)
 
                 print("Finished training on {}!".format(dta))
 
     except RuntimeError:
-        model_path = './cnn_res_lstm.pth'
+        model_path = './cnn_res_lstm_simple.pth'
         torch.save(model.state_dict(), model_path)
         print("Breaks the computer!!!")
