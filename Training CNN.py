@@ -52,9 +52,6 @@ def train(epochs):
     loss_train = criterion(output_train, y_train.type(torch.float))
     loss_val = criterion(output_val, y_val.type(torch.float))
 
-    train_losses.append(loss_train.item())
-    val_losses.append(loss_val.item())
-
     loss_train.backward()
     optimizer.step()
     gc.collect()
@@ -89,9 +86,6 @@ if __name__ == '__main__':
                 print("Train on {}!".format(dta))
                 print(dta_x.shape, dta_y.shape)
                 # Begin training
-
-                train_losses = []
-                val_losses = []
 
                 for epoch in range(5):
                     train_X, train_Y, val_X, val_Y = data_preprocessing(dta_x, dta_y)
