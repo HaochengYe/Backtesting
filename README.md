@@ -33,17 +33,3 @@ It can also generate heatmaps to help visualize the return, volatility and Sharp
 3. Better source of data
 4. Better visualization to illustrate the time relevance of these strategies.
 
-## Note:
-Generating :400 ticker_list into candlestick data
-
-78-100
-176-200
-268-300
-306-400
-
-Changing path:
-Laptop:
-D:/GitHub/Backtesting/images_npy/{}/{}
-
-Desktop:
-C:/Users/Andyy/Documents/GitHub/Backtesting/images_npy/{}/{}
