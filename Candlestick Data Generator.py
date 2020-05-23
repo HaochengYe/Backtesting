@@ -114,15 +114,18 @@ def dta_transformation(data, est_h):
     assert 'Low' in data.columns
     assert 'Close' in data.columns
 
-    data['lag_close'] = data['Close'].shift(1)
-    data['Indicator'] = np.where(data['Close'] > data['lag_close'], 1, 0)
-
     x = []
     y = []
+
     for i in range(est_h, data.shape[0]):
         sub_dta = data.iloc[i - est_h:i]
 
-        y_i = data.iloc[i]['Indicator']
+        mom_ret = int(momentum_ret(sub_dta)>0)
+        mean_cut = int(mean_cutoff(sub_dta)>0)
+        half_ret = int(half_return_diff(sub_dta)>0)
+        consec = int(consec_trend(sub_dta)>0)
+        
+        y_i = [mom_ret, mean_cut, half_ret, consec]
         x_i = dta_to_candlestick(sub_dta)
 
         y.append(y_i)
@@ -148,13 +151,14 @@ if __name__ == '__main__':
         if hist.shape[0] > 1000:
             x, y = dta_transformation(hist, 10)
             x = np.stack(x, axis=2)
+            y = np.stack(y, axis=1)
 
             L = x.shape[2] // 1000
             remainder = x.shape[2] % 1000
 
             for i in range(L):
                 sub_x = x[:, :, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
-                sub_y = y[(1000 * i + remainder):(1000 * (i + 1) + remainder)]
+                sub_y = y[:, (1000 * i + remainder):(1000 * (i + 1) + remainder)]
                 if not os.path.exists('images_npy-1/{}'.format(ticker)):
                     os.makedirs('images_npy-1/{}'.format(ticker))
                 np.savez_compressed('images_npy-1/{}/{}_{}'.format(ticker, ticker, i), x=sub_x, y=sub_y)
