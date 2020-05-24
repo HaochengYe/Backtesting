@@ -8,7 +8,9 @@ Machine Learning Tweaks:
 
 ## Note:
 Generating :400 ticker_list into candlestick data
-
+24:100
+128:200
+225:300
 
 
 Changing path:
