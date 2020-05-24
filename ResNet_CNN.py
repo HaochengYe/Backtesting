@@ -5,7 +5,6 @@ from torch import nn
 import torchvision
 from functools import partial
 from collections import OrderedDict
-import torch.nn.functional as F
 
 
 class Conv2dAuto(nn.Conv2d):
