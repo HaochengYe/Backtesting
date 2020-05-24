@@ -19,9 +19,9 @@ def dataLoader(path):
     loaded = np.load(path)
     dta_x = loaded['x']
     dta_y = loaded['y']
-    y_T = dta_y.T
-    y_int = y_T.dot(1 << np.arange(y_T.shape[-1]-1, -1, -1))
-    return dta_x, y_int
+    dta_y = dta_y.T
+    dta_y = dta_y.dot(1 << np.arange(dta_y.shape[-1]-1, -1, -1))
+    return dta_x, dta_y
 
 
 def data_preprocessing(X, Y):
