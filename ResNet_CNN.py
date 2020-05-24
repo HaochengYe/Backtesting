@@ -144,7 +144,10 @@ class ResNetDecoder(nn.Module):
         super().__init__()
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.decoder = nn.ModuleList([
-            nn.Linear(in_features, n_classes),
+            nn.Linear(in_features, in_features // 2),
+            nn.Dropout(0.4),
+            activation_func('leaky_relu'),
+            nn.Linear(in_features // 2, n_classes),
             nn.Softmax(dim=1)
         ])
 
@@ -158,8 +161,7 @@ class ResNetDecoder(nn.Module):
 
 class LSTM(nn.Module):
  
-    def __init__(self, input_dim, hidden_dim, batch_size=1, output_dim=1,
-                    num_layers=2):
+    def __init__(self, input_dim, hidden_dim, batch_size=1, output_dim=1, num_layers=2):
         super(LSTM, self).__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -191,10 +193,22 @@ class LSTM(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, in_channels, n_classes, hidden_dim, *args, **kwargs):
+    def __init__(self, in_channels, n_classes, *args, **kwargs):
         super().__init__()
         self.encoder = ResNetEncoder(in_channels, *args, **kwargs)
         self.decoder = ResNetDecoder(self.encoder.blocks[-1].blocks[-1].expanded_channels, n_classes)
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+
+        return x
+
+
+class CNN_LSTM(nn.Module):
+    def __init__(self, in_channels, n_classes, hidden_dim, *args, **kwargs):
+        super().__init__()
+        self.CNN = ResNet(in_channels, n_classes, *args, **kwargs)
         self.LSTM = LSTM(input_dim=n_classes, hidden_dim=hidden_dim)
 
     def forward(self, x):
@@ -205,5 +219,9 @@ class ResNet(nn.Module):
         return x
 
 
-def res_conv1(in_channels, n_classes, hidden_dim=64, deepths=[1,1,1,1], blocks_sizes=[64, 128, 256, 512], block=ResNetBasicBlock, *args, **kwargs):
-    return ResNet(in_channels, n_classes, hidden_dim, deepths=deepths, blocks_sizes=blocks_sizes, block=block, *args, **kwargs)
+def res_conv(in_channels, n_classes, deepths=[1,1,1,1], blocks_sizes=[64, 128,256, 512], block=ResNetBasicBlock, *args, **kwargs):
+    return ResNet(in_channels, n_classes, deepths=deepths, blocks_sizes=blocks_sizes, block=block, *args, **kwargs)
+
+
+def cnn_lstm(in_channels, n_classes, hidden_dim=64, deepths=[1,1,1,1], blocks_sizes=[64, 128, 256, 512], block=ResNetBasicBlock, *args, **kwargs):
+    return CNN_LSTM(in_channels, n_classes, hidden_dim, deepths=deepths, blocks_sizes=blocks_sizes, block=block, *args, **kwargs)
