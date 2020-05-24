@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from torch.autograd import Variable
+from sklearn.preprocessing import OneHotEncoder
 
 import gc
 
@@ -19,7 +20,11 @@ def dataLoader(path):
     loaded = np.load(path)
     dta_x = loaded['x']
     dta_y = loaded['y']
-    return dta_x, dta_y
+    y_T = dta_y.T
+    y_int = y_T.dot(1 << np.arange(y_T.shape[-1]-1, -1, -1))
+    onehot_encoder = OneHotEncoder(sparse=False)
+    encoded = onehot_encoder.fit_transform(y_int)
+    return dta_x, encoded
 
 
 def data_preprocessing(X, Y):
