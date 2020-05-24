@@ -212,8 +212,7 @@ class CNN_LSTM(nn.Module):
         self.LSTM = LSTM(input_dim=n_classes, hidden_dim=hidden_dim)
 
     def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
+        x = self.CNN(x)
         x = self.LSTM(x)
 
         return x
