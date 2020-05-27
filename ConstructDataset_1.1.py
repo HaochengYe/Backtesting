@@ -48,11 +48,13 @@ if __name__ == '__main__':
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
     START = datetime(1980, 1, 1)
-    END = datetime(2020, 5, 15)
+    END = datetime(2020, 5, 27)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
     init_logging()
     raw = data_collection(sp500_list, sp500_del_col, START, END)
     df = pd.concat(raw, axis=1)
+
+    df.dropna(how='all', inplace=True)
     df.to_csv('sp500.csv')
