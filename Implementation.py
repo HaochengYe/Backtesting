@@ -204,18 +204,35 @@ class Agent:
         self.tran_cost = float()
 
 
+def data_preprocess(dta):
+    dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
+    dta = dta.set_index(dta['Date'])
+    dta.drop(['Date'], axis=1, inplace=True)
+    dta.dropna(how='all', inplace=True)
+    for tick in dta.columns:
+        tick_series = dta[tick]
+        start_pos = tick_series.first_valid_index()
+        valid_series = tick_series.loc[start_pos:]
+        if valid_series.isna().sum() > 0:
+            dta.drop(tick, axis=1, inplace=True)
+
+    return dta
+
 if __name__ == '__main__':
     df = pd.read_csv("SP500.csv")
     # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
-    ticker = list(df.columns)[1:]
+    df = data_preprocess(df)
+
+    ticker = list(df.columns)
+    ticker.remove('SPY')
 
     INITIAL_BALANCE = 51500
     TRANS_COST = 0.00
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies[1:], cycle=20, max_holding=20)
+    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, cycle=20, max_holding=10)
 
     return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
     '''
