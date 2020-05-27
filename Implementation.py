@@ -216,6 +216,9 @@ def data_preprocess(dta):
         if valid_series.isna().sum() > 0:
             dta.drop(tick, axis=1, inplace=True)
 
+    for tick in dta.columns:
+        dta[tick] = dta[tick].mask(dta[tick] == 0).ffill(downcast='infer')
+
     return dta
 
 if __name__ == '__main__':
@@ -223,7 +226,7 @@ if __name__ == '__main__':
     # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     df = data_preprocess(df)
-
+    print(df.shape)
     ticker = list(df.columns)
     ticker.remove('SPY')
 
@@ -232,7 +235,7 @@ if __name__ == '__main__':
     # define the risk-free rate
     RISKFREE = 1.00
 
-    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, cycle=20, max_holding=10)
+    wsw = Agent({'cash': INITIAL_BALANCE}, df, trading_strategies, rebalancing_strategies, cycle=20, max_holding=20)
 
     return_chart, vol_chart, sharpe_chart = wsw.BackTesting()
     '''
