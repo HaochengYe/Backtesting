@@ -36,6 +36,19 @@ def PriceMomentum(df, cycle, time):
         pass
 
 
+def MomentumReturn(df, cycle, time):
+    try:
+        x_0 = df.iloc[time - 2*cycle]
+        x_t = df.iloc[time - cycle]
+        x_T = df.iloc[time]
+        
+        ttl_ret = (x_T - x_0) / x_0
+        half_ret = (x_t - x_0) / x_0
+        return ttl_ret + half_ret
+    except KeyError:
+        pass
+
+
 def Price_High_Low(df, cycle, time):
     """
     Compute High-minus-low:
