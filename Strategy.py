@@ -30,7 +30,7 @@ def PriceMomentum(df, cycle, time):
     :return: PM_{i,t} = (Close_{i,t} - Close_{i, t-1}) / Close_{i, t-1}
     """
     try:
-        previous_price = df.iloc[time - 2*cycle]
+        previous_price = df.iloc[time - cycle]
         return -(df.iloc[time] - previous_price) / previous_price
     except KeyError:
         pass
@@ -41,10 +41,20 @@ def MomentumReturn(df, cycle, time):
         x_0 = df.iloc[time - 2*cycle]
         x_t = df.iloc[time - cycle]
         x_T = df.iloc[time]
-        
+
         ttl_ret = (x_T - x_0) / x_0
         half_ret = (x_t - x_0) / x_0
         return ttl_ret + half_ret
+    except KeyError:
+        pass
+
+
+def MeanCutOff(df, cycle, time):
+    try:
+        mu = df.iloc[time: time - 2*cycle].mean()
+        upr = (df.iloc[time: time - 2*cycle] > mu).sum()
+        lwr = (df.iloc[time: time - 2*cycle] <= mu).sum()
+        return upr - lwr
     except KeyError:
         pass
 
@@ -181,7 +191,7 @@ def BoolingerBands(df, cycle, time):
         pass
 
 
-trading_strategies = [MovingAverage, PriceReverse, PriceMomentum, Price_High_Low, Vol_Coefficient, AnnVol, MACD, BoolingerBands]
+trading_strategies = [MovingAverage, PriceReverse, PriceMomentum, MomentumReturn, MeanCutOff, Price_High_Low, Vol_Coefficient, AnnVol, MACD, BoolingerBands]
 
 
 def MinVariance(data, ranking, time, cycle):

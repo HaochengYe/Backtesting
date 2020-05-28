@@ -230,7 +230,7 @@ if __name__ == '__main__':
     ticker = list(df.columns)
     ticker.remove('SPY')
 
-    INITIAL_BALANCE = 51500
+    INITIAL_BALANCE = 50000
     TRANS_COST = 0.00
     # define the risk-free rate
     RISKFREE = 1.00
