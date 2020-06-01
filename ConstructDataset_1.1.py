@@ -48,7 +48,7 @@ if __name__ == '__main__':
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
     START = datetime(1980, 1, 1)
-    END = datetime(2020, 5, 27)
+    END = datetime(2020, 5, 29)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
