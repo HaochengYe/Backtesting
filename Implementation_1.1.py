@@ -8,11 +8,16 @@ from Strategy import *
 
 sns.set()
 
-class Agent():
 
-    def __init__(self, portfolio, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma):
+INIT_BALANCE = 50000
+TRAN_COST = 0.05
 
-        self.portfolio = portfolio
+
+class Agent:
+
+    def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma):
+
+        self.portfolio = {}
         self.data = data
         self.trading_strategies = trading_strategies
         self.rebalancing_strategies = rebalancing_strategies
@@ -22,15 +27,17 @@ class Agent():
         # parameter for risk preference (proportion that invest into SPY)
         self.gamma = gamma
 
-    @property
-    def equity(self):
-        return sum(self.portfolio.values())
+    def get_equity(self, time):
+        portfolio = self.portfolio
+        shares = np.array(portfolio.values())
+        prices = np.array(self.data[list(portfolio.keys())].iloc[time])
+        self.equity = shares @ prices
+        return self.equity
 
     def PitchStock(self, strat, time):
         cycle = self.cycle
         data = self.data
         max_holding = self.max_holding
-        ticker = data.columns.to_list()
         ranking = {}
         for i in ticker:
             metric = strat(data[i], cycle, time)
@@ -42,16 +49,15 @@ class Agent():
     def Rebalance(self, ranking, strat, time):
         cycle = self.cycle
         data = self.data
-        cash = self.portfolio['cash']
-        # assume that cash earns risk-free rate interest
-        equity = self.equity + cash * (self.rf - 1)
-        target_portfolio = {}
+        equity = self.get_equity(time)
         weight = np.array(strat(data, ranking, time, cycle))
-        weight = (weight * equity).astype(int)
-        for w, stock in zip(weight, ranking):
-            price = data[stock].iloc[time]
-            shares = w // price
-            target_portfolio[stock] = shares
-            equity -= shares * price
-        target_portfolio['cash'] = equity
-        return target_portfolio
+        safe_weight = self.gamma
+
+        target_weight = np.append(weight * (1 - safe_weight), safe_weight)
+        target_posit = target_weight * equity
+
+        target_portfolio = dict(zip(ranking.append('SPY'), target_weight))
+
+
+
+
