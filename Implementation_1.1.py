@@ -134,7 +134,7 @@ class Agent:
             for row, rebal_strat in enumerate(rebalancing_strategies):
                 path = self.Backtest_Single(trad_strat, rebal_strat)
                 path = np.array(path)
-                print(path[-1], self.tran_cost, path[0])
+
                 ttl_ret = np.maximum((path[-1] - self.tran_cost) / path[0], 0)
                 annual_ret = np.power(np.power(ttl_ret, 1/len(path)), 252) - 1
                 annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1/2)
@@ -179,8 +179,21 @@ if __name__ == '__main__':
 
     INITIAL_BALANCE = 50000
     TRANS_COST = 0.001
-    CYCLE = 10
+    CYCLE = 20
     MAX_HOLDING = 20
 
-    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.2)
+    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.1)
     return_table, vol_chart, sharpe_chart = wsw.Backtest_All()
+    '''
+    return_table = return_table.astype(float)
+    plt.title('Return Heatmap')
+    sns.heatmap(return_table, annot=True, square=True, cmap='RdBu')
+
+    vol_chart = vol_chart.astype(float)
+    plt.title('Volatility Heatmap')
+    sns.heatmap(vol_chart, annot=True, square=True, cmap='RdBu')
+
+    sharpe_chart = sharpe_chart.astype(float)
+    plt.title('Sharpe Ratio Heatmap')
+    sns.heatmap(sharpe_chart, annot=True, square=True, cmap='RdBu')
+    '''
