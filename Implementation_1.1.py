@@ -179,15 +179,15 @@ if __name__ == '__main__':
 
     INITIAL_BALANCE = 50000
     TRANS_COST = 0.001
-    CYCLE = 20
+    CYCLE = 10
     MAX_HOLDING = 20
 
-    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.1)
-    return_table, vol_chart, sharpe_chart = wsw.Backtest_All()
+    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.5)
+    return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
     '''
-    return_table = return_table.astype(float)
+    return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')
-    sns.heatmap(return_table, annot=True, square=True, cmap='RdBu')
+    sns.heatmap(return_chart, annot=True, square=True, cmap='RdBu')
 
     vol_chart = vol_chart.astype(float)
     plt.title('Volatility Heatmap')

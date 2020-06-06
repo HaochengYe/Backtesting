@@ -24,7 +24,7 @@ def data_collection(ticker_list, del_col, start, end):
         try:
             temp = yf.Ticker(ticker)
             hist_temp = temp.history(start=start, end=end)
-            if hist_temp.shape[0] >= 1500:
+            if hist_temp.shape[0] >= 500:
                 hist_temp.drop(del_col, axis=1, inplace=True)
                 hist_temp.columns = [ticker]
                 status = "Successfully retrieve {}'s data.".format(ticker)
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
     START = datetime(1980, 1, 1)
-    END = datetime(2020, 5, 29)
+    END = datetime(2020, 6, 5)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
