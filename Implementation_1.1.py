@@ -170,7 +170,7 @@ def data_preprocess(dta):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv("SP500.csv")
+    df = pd.read_csv("broader_stock.csv")
     # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     df = data_preprocess(df)
@@ -181,9 +181,9 @@ if __name__ == '__main__':
     INITIAL_BALANCE = 82000
     TRANS_COST = 0.001
     CYCLE = 10
-    MAX_HOLDING = 20
+    MAX_HOLDING = 10
 
-    wsw = Agent(df, [Price_High_Low], [EqualWeight], CYCLE, MAX_HOLDING, 0.1)
+    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.1)
     return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
     '''
     return_chart = return_chart.astype(float)
