@@ -10,7 +10,7 @@ sns.set()
 
 class Agent:
 
-    def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma):
+    def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma=0):
 
         self.portfolio = {'cash': INITIAL_BALANCE}
         self.data = data
@@ -154,7 +154,7 @@ def data_preprocess(dta):
     dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
     dta = dta.set_index(dta['Date'])
     # NHLI not traded
-    dta.drop(['Date', 'NHLI'], axis=1, inplace=True)
+    dta.drop(['Date', 'NHLI', ], axis=1, inplace=True)
     dta.dropna(how='all', inplace=True)
     for tick in dta.columns:
         tick_series = dta[tick]
@@ -170,7 +170,7 @@ def data_preprocess(dta):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv("broader_stock.csv")
+    df = pd.read_csv("SP500.csv")
     # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     df = data_preprocess(df)
@@ -178,12 +178,12 @@ if __name__ == '__main__':
     ticker = list(df.columns)
     ticker.remove('SPY')
 
-    INITIAL_BALANCE = 82000
+    INITIAL_BALANCE = 80000
     TRANS_COST = 0.001
-    CYCLE = 10
-    MAX_HOLDING = 10
+    CYCLE = 5
+    MAX_HOLDING = 30
 
-    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING, 0.1)
+    wsw = Agent(df, [Price_High_Low], [EqualWeight], CYCLE, MAX_HOLDING)
     return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
     '''
     return_chart = return_chart.astype(float)
