@@ -170,7 +170,7 @@ def data_preprocess(dta):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv("SP500.csv")
+    df = pd.read_csv("broader_stock.csv")
     # df.drop(['Unnamed: 0'], axis=1, inplace=True)
     print(df.shape)
     df = data_preprocess(df)
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     ticker = list(df.columns)
     ticker.remove('SPY')
 
-    INITIAL_BALANCE = 80000
+    INITIAL_BALANCE = 79000
     TRANS_COST = 0.001
     CYCLE = 5
     MAX_HOLDING = 30
