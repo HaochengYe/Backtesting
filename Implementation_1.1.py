@@ -154,7 +154,7 @@ def data_preprocess(dta):
     dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
     dta = dta.set_index(dta['Date'])
     # NHLI not traded
-    dta.drop(['Date', 'NHLI', ], axis=1, inplace=True)
+    dta.drop(['Date', 'NHLI'], axis=1, inplace=True)
     dta.dropna(how='all', inplace=True)
     for tick in dta.columns:
         tick_series = dta[tick]
