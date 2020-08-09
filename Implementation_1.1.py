@@ -178,12 +178,12 @@ if __name__ == '__main__':
     ticker = list(df.columns)
     ticker.remove('SPY')
 
-    INITIAL_BALANCE = 79000
+    INITIAL_BALANCE = 60000
     TRANS_COST = 0.001
     CYCLE = 5
     MAX_HOLDING = 30
 
-    wsw = Agent(df, [Price_High_Low], [EqualWeight], CYCLE, MAX_HOLDING)
+    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
     return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
     '''
     return_chart = return_chart.astype(float)
