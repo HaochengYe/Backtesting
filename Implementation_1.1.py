@@ -148,6 +148,31 @@ class Agent:
 
         return portfolio_re, portfolio_vol, portfolio_sharpe
 
+    def Backtest_History(self):
+        trading_strategies = self.trading_strategies
+        rebalancing_strategies = self.rebalancing_strategies
+        print("There are %s trading strategies and %s rebalancing strategies we are testing." % (
+            len(trading_strategies), len(rebalancing_strategies)))
+        print("Trading Strategies: ")
+        for i in trading_strategies:
+            print("     %s \n" % i.__name__)
+        print("Rebalacing Strategies: ")
+        for i in rebalancing_strategies:
+            print("     %s \n" % i.__name__)
+
+        history = []
+        cost = []
+
+        for col, trad_strat in enumerate(trading_strategies):
+            for row, rebal_strat in enumerate(rebalancing_strategies):
+                path = self.Backtest_Single(trad_strat, rebal_strat)
+                history.append(path)
+                cost.append(self.tran_cost)
+                self.reset()
+                print('\n')
+
+        return history, cost
+
 
 def data_preprocess(dta):
     dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
@@ -179,11 +204,12 @@ if __name__ == '__main__':
 
     INITIAL_BALANCE = 60000
     TRANS_COST = 0.001
-    CYCLE = 20
+    CYCLE = 5
     MAX_HOLDING = 30
 
-    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
-    return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
+    wsw = Agent(df[3000:], trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
+    history, cost = wsw.Backtest_History()
+
     '''
     return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')

@@ -10,13 +10,13 @@ sns.set()
 
 
 def mix_backtesting(strat):
-    hist = np.zeros(df.shape[0] - 1)
+    hist = np.zeros(df.shape[0] - 3001)
     trancost = float()
     for key in strat.keys():
         cycle = strat[key][0]
         trad = strat[key][1]
         rebal = strat[key][2]
-        sub = subAgent(df, trading_strategies, rebalancing_strategies, cycle, MAX_HOLDING, key)
+        sub = subAgent(df[3000:], trading_strategies, rebalancing_strategies, cycle, MAX_HOLDING, key)
         path = np.array(sub.Backtest_Single(trad, rebal))
         hist = hist + path
         trancost += sub.tran_cost
@@ -192,7 +192,7 @@ class Agent:
 
 class subAgent(Agent):
     def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, perc, gamma=0):
-        super().__init__(data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma=0)
+        super().__init__(data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma)
         self.portfolio = {'cash': INITIAL_BALANCE * perc}
 
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     INITIAL_BALANCE = 60000
     TRANS_COST = 0.001
-    CYCLE = 20
+    CYCLE = 10
     MAX_HOLDING = 30
 
     # mixed statregies: percentage as key, strategies as value
@@ -219,7 +219,7 @@ if __name__ == '__main__':
     history, cost = mix_backtesting(mixed)
     ret, vol, sharpe = sharpe_ratio(history, cost)
 
-    
+
     '''
     return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')
