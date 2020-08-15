@@ -32,3 +32,7 @@ It can also generate heatmaps to help visualize the return, volatility and Sharp
 2. Find good trading strategies that involves short selling.
 3. Backtesting rebalancing strategies that minimizes the volatility through short stocks with negative correlations
 
+
+## Best strategy based on backtesting results
+5-day period: Price Reverse & Momentum Return + Equal Weight
+20-day period: Price High Low + Equal Weight & Vol Coefficient + Risk Parity

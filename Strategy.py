@@ -2,7 +2,6 @@ import math
 import numpy as np
 
 
-# %%
 def PriceReverse(df, cycle, time):
     """
     Compute 1M Price Reversal
@@ -14,6 +13,10 @@ def PriceReverse(df, cycle, time):
     """
     try:
         previous_price = df.iloc[time - cycle]
+        i = 1
+        while previous_price == 0:
+            previous_price = df.iloc[time-cycle-i]
+            i += 1
         return (df.iloc[time] - previous_price) / previous_price
     except KeyError:
         pass
@@ -30,6 +33,10 @@ def PriceMomentum(df, cycle, time):
     """
     try:
         previous_price = df.iloc[time - cycle]
+        i = 1
+        while previous_price == 0:
+            previous_price = df.iloc[time-cycle-i]
+            i += 1
         return -(df.iloc[time] - previous_price) / previous_price
     except KeyError:
         pass
@@ -41,6 +48,11 @@ def MomentumReturn(df, cycle, time):
         x_t = df.iloc[time - cycle]
         x_T = df.iloc[time]
 
+        i = 1
+        while x_0 == 0:
+            x_0 = df.iloc[time-2*cycle-i]
+            i += 1
+
         ttl_ret = (x_T - x_0) / x_0
         half_ret = (x_t - x_0) / x_0
         return ttl_ret + half_ret
@@ -50,9 +62,9 @@ def MomentumReturn(df, cycle, time):
 
 def MeanCutOff(df, cycle, time):
     try:
-        mu = df.iloc[time: time - 2*cycle].mean()
-        upr = (df.iloc[time: time - 2*cycle] > mu).sum()
-        lwr = (df.iloc[time: time - 2*cycle] <= mu).sum()
+        mu = df.iloc[time - 2*cycle:time].mean()
+        upr = (df.iloc[time - 2*cycle:time] > mu).sum()
+        lwr = (df.iloc[time - 2*cycle:time] <= mu).sum()
         return upr - lwr
     except KeyError:
         pass
@@ -69,9 +81,12 @@ def Price_High_Low(df, cycle, time):
     """
     try:
         arr = df.iloc[time-cycle:time].values
+        Current = df.iloc[time]
         High = max(arr)
         Low = min(arr)
-        return -(High - df.iloc[time]) / (df.iloc[time] - Low)
+        if Current == Low:
+            return -(High - Current) / 1e-8
+        return -(High - Current) / (Current - Low)
     except KeyError:
         pass
 
@@ -234,4 +249,4 @@ def RiskParity(data, ranking, time, cycle):
     return weight
 
 
-rebalancing_strategies = [EqualWeight, RiskParity]
+rebalancing_strategies = [MinVariance,EqualWeight, RiskParity]

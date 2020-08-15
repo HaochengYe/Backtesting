@@ -8,6 +8,7 @@ from Strategy import *
 
 sns.set()
 
+
 class Agent:
 
     def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma=0):
@@ -24,6 +25,11 @@ class Agent:
         self.gamma = gamma
 
     def get_equity(self, time):
+        # first calculate the time where the last selling happened
+        last_time = time - 1
+        while last_time % self.cycle != 0:
+            last_time -= 1
+
         portfolio = copy.deepcopy(self.portfolio)
         cash = portfolio['cash']
         ttl_equity = cash
@@ -31,8 +37,9 @@ class Agent:
         del portfolio['cash']
         if len(portfolio.values()) != 0:
             shares = np.array(list(portfolio.values()))
-            prices = np.array(self.data[list(portfolio.keys())].iloc[time])
-            ttl_equity += shares @ prices
+            prices = np.array(self.data[list(portfolio.keys())].iloc[last_time])
+            curr_prices = np.array(self.data[list(portfolio.keys())].iloc[time])
+            ttl_equity += shares @ (2 * prices - curr_prices)
         return ttl_equity
 
     def PitchStock(self, trad_strat, rebal_strat, time):
@@ -43,9 +50,10 @@ class Agent:
         ranking = {}
         for i in ticker:
             metric = trad_strat(data[i], cycle, time)
-            if (metric is not None and not math.isnan(metric)) & (not math.isnan(data[i].iloc[time-cycle])):
+            if (metric is not None and not math.isnan(metric)) & (not math.isnan(data[i].iloc[time - cycle])):
                 ranking[i] = metric
-        result = sorted(ranking, key=ranking.get)[:max_holding]
+        # set reverse to False to pick the stock that's performing the worst
+        result = sorted(ranking, key=ranking.get, reverse=True)[:max_holding]
 
         weight = np.array(rebal_strat(data, result, time, cycle))
         safe_weight = self.gamma
@@ -129,16 +137,15 @@ class Agent:
         portfolio_sharpe = pd.DataFrame(index=[x.__name__ for x in rebalancing_strategies],
                                         columns=[x.__name__ for x in trading_strategies])
 
-
         for col, trad_strat in enumerate(trading_strategies):
             for row, rebal_strat in enumerate(rebalancing_strategies):
                 path = self.Backtest_Single(trad_strat, rebal_strat)
                 path = np.array(path)
 
                 ttl_ret = np.maximum((path[-1] - self.tran_cost) / path[0], 0)
-                annual_ret = np.power(np.power(ttl_ret, 1/len(path)), 252) - 1
-                annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1/2)
-                annual_sharpe = annual_ret / annual_vol
+                annual_ret = np.power(np.power(ttl_ret, 1 / len(path)), 252) - 1
+                annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1 / 2)
+                annual_sharpe = (annual_ret - RISKFREE) / annual_vol
 
                 portfolio_re.iloc[row][col] = annual_ret
                 portfolio_vol.iloc[row][col] = annual_vol
@@ -182,6 +189,7 @@ if __name__ == '__main__':
     TRANS_COST = 0.001
     CYCLE = 20
     MAX_HOLDING = 30
+    RISKFREE = 0.08325
 
     wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
     return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
