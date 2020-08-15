@@ -8,6 +8,51 @@ from Strategy import *
 
 sns.set()
 
+
+def mix_backtesting(strat):
+    hist = np.zeros(df.shape[0] - 1)
+    trancost = float()
+    for key in strat.keys():
+        cycle = strat[key][0]
+        trad = strat[key][1]
+        rebal = strat[key][2]
+        sub = subAgent(df, trading_strategies, rebalancing_strategies, cycle, MAX_HOLDING, key)
+        path = np.array(sub.Backtest_Single(trad, rebal))
+        hist = hist + path
+        trancost += sub.tran_cost
+    return hist, trancost
+
+
+def sharpe_ratio(path, trancost):
+    path = np.array(path)
+
+    ttl_ret = np.maximum((path[-1] - trancost) / path[0], 0)
+    annual_ret = np.power(np.power(ttl_ret, 1 / len(path)), 252) - 1
+    annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1 / 2)
+    annual_sharpe = annual_ret / annual_vol
+
+    return annual_ret, annual_vol, annual_sharpe
+
+
+def data_preprocess(dta):
+    dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
+    dta = dta.set_index(dta['Date'])
+    # NHLI not traded
+    dta.drop(['Date', 'NHLI'], axis=1, inplace=True)
+    dta.dropna(how='all', inplace=True)
+    for tick in dta.columns:
+        tick_series = dta[tick]
+        start_pos = tick_series.first_valid_index()
+        valid_series = tick_series.loc[start_pos:]
+        if valid_series.isna().sum() > 0:
+            dta.drop(tick, axis=1, inplace=True)
+
+    for tick in dta.columns:
+        dta[tick] = dta[tick].mask(dta[tick] == 0).ffill(downcast='infer')
+
+    return dta[dta.index >= dta['SPY'].first_valid_index()]
+
+
 class Agent:
 
     def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma=0):
@@ -132,12 +177,8 @@ class Agent:
         for col, trad_strat in enumerate(trading_strategies):
             for row, rebal_strat in enumerate(rebalancing_strategies):
                 path = self.Backtest_Single(trad_strat, rebal_strat)
-                path = np.array(path)
 
-                ttl_ret = np.maximum((path[-1] - self.tran_cost) / path[0], 0)
-                annual_ret = np.power(np.power(ttl_ret, 1/len(path)), 252) - 1
-                annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1/2)
-                annual_sharpe = annual_ret / annual_vol
+                annual_ret, annual_vol, annual_sharpe = sharpe_ratio(path, self.tran_cost)
 
                 portfolio_re.iloc[row][col] = annual_ret
                 portfolio_vol.iloc[row][col] = annual_vol
@@ -149,23 +190,10 @@ class Agent:
         return portfolio_re, portfolio_vol, portfolio_sharpe
 
 
-def data_preprocess(dta):
-    dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
-    dta = dta.set_index(dta['Date'])
-    # NHLI not traded
-    dta.drop(['Date', 'NHLI'], axis=1, inplace=True)
-    dta.dropna(how='all', inplace=True)
-    for tick in dta.columns:
-        tick_series = dta[tick]
-        start_pos = tick_series.first_valid_index()
-        valid_series = tick_series.loc[start_pos:]
-        if valid_series.isna().sum() > 0:
-            dta.drop(tick, axis=1, inplace=True)
-
-    for tick in dta.columns:
-        dta[tick] = dta[tick].mask(dta[tick] == 0).ffill(downcast='infer')
-
-    return dta[dta.index >= dta['SPY'].first_valid_index()]
+class subAgent(Agent):
+    def __init__(self, data, trading_strategies, rebalancing_strategies, cycle, max_holding, perc, gamma=0):
+        super().__init__(data, trading_strategies, rebalancing_strategies, cycle, max_holding, gamma=0)
+        self.portfolio = {'cash': INITIAL_BALANCE * perc}
 
 
 if __name__ == '__main__':
@@ -182,8 +210,16 @@ if __name__ == '__main__':
     CYCLE = 20
     MAX_HOLDING = 30
 
-    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
-    return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
+    # mixed statregies: percentage as key, strategies as value
+    mixed = {0.5: [20, Price_High_Low, EqualWeight],
+             0.35: [20, Vol_Coefficient, RiskParity],
+             0.1: [5, PriceReverse, EqualWeight],
+             0.05: [5, MomentumReturn, EqualWeight]}
+
+    history, cost = mix_backtesting(mixed)
+    ret, vol, sharpe = sharpe_ratio(history, cost)
+
+
     '''
     return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')
