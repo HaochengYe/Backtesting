@@ -219,7 +219,7 @@ if __name__ == '__main__':
     history, cost = mix_backtesting(mixed)
     ret, vol, sharpe = sharpe_ratio(history, cost)
 
-
+    
     '''
     return_chart = return_chart.astype(float)
     plt.title('Return Heatmap')
