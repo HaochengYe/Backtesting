@@ -249,4 +249,4 @@ def RiskParity(data, ranking, time, cycle):
     return weight
 
 
-rebalancing_strategies = [MinVariance,EqualWeight, RiskParity]
+rebalancing_strategies = [MinVariance, EqualWeight, RiskParity]

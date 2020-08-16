@@ -208,7 +208,7 @@ if __name__ == '__main__':
     MAX_HOLDING = 30
 
     wsw = Agent(df[3000:], trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
-    history, cost = wsw.Backtest_History()
+    return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
 
     '''
     return_chart = return_chart.astype(float)

@@ -211,25 +211,38 @@ if __name__ == '__main__':
     MAX_HOLDING = 30
 
     # mixed statregies: percentage as key, strategies as value
-    mixed = {0.5: [20, Price_High_Low, EqualWeight],
-             0.35: [20, Vol_Coefficient, RiskParity],
-             0.1: [5, PriceReverse, EqualWeight],
-             0.05: [5, MomentumReturn, EqualWeight]}
+    mixed = {0.23: [20, MomentumReturn, RiskParity],
+             0.24: [10, PriceReverse, RiskParity],
+             0.26: [10, Price_High_Low, RiskParity],
+             0.27: [5, MomentumReturn, RiskParity]}
 
-    history, cost = mix_backtesting(mixed)
-    ret, vol, sharpe = sharpe_ratio(history, cost)
+    weight = np.linspace(0, 1, 11)
+    record = pd.DataFrame(columns=['w', 'j', 'k', 'ret', 'vol', 'sharpe'])
 
+    for w in weight:
+        for j in weight:
+            k = 1 - w - j
+            if w == j:
+                w += 0.05
+                j -= 0.05
+            if j == k:
+                j += 0.05
+                k -= 0.05
+            if k == w:
+                k += 0.05
+                w -= 0.05
+            if (k < 0) or (w < 0) or (j < 0):
+                continue
 
-    '''
-    return_chart = return_chart.astype(float)
-    plt.title('Return Heatmap')
-    sns.heatmap(return_chart, annot=True, square=True, cmap='RdBu')
+            strat = {w: [20, MomentumReturn, RiskParity],
+                     j: [10, Price_High_Low, RiskParity],
+                     k: [5, MomentumReturn, RiskParity]}
 
-    vol_chart = vol_chart.astype(float)
-    plt.title('Volatility Heatmap')
-    sns.heatmap(vol_chart, annot=True, square=True, cmap='RdBu')
+            history, cost = mix_backtesting(strat)
+            ret, vol, sharpe = sharpe_ratio(history, cost)
 
-    sharpe_chart = sharpe_chart.astype(float)
-    plt.title('Sharpe Ratio Heatmap')
-    sns.heatmap(sharpe_chart, annot=True, square=True, cmap='RdBu')
-    '''
+            new_row = {'w': w, 'j': j, 'k': k,
+                       'ret': ret, 'vol': vol, 'sharpe': sharpe}
+
+            record = record.append(new_row, ignore_index=True)
+
