@@ -12,11 +12,12 @@ sns.set()
 def mix_backtesting(strat):
     hist = np.zeros(df.shape[0] - 3001)
     trancost = float()
-    for key in strat.keys():
-        cycle = strat[key][0]
-        trad = strat[key][1]
-        rebal = strat[key][2]
-        sub = subAgent(df[3000:], trading_strategies, rebalancing_strategies, cycle, MAX_HOLDING, key)
+    for s in strat:
+        w = s[0]
+        cycle = s[1]
+        trad = s[2]
+        rebal = s[3]
+        sub = subAgent(df[3000:], trading_strategies, rebalancing_strategies, cycle, MAX_HOLDING, w)
         path = np.array(sub.Backtest_Single(trad, rebal))
         hist = hist + path
         trancost += sub.tran_cost
@@ -29,7 +30,7 @@ def sharpe_ratio(path, trancost):
     ttl_ret = np.maximum((path[-1] - trancost) / path[0], 0)
     annual_ret = np.power(np.power(ttl_ret, 1 / len(path)), 252) - 1
     annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1 / 2)
-    annual_sharpe = annual_ret / annual_vol
+    annual_sharpe = (annual_ret - RISKFREE) / annual_vol
 
     return annual_ret, annual_vol, annual_sharpe
 
@@ -209,40 +210,34 @@ if __name__ == '__main__':
     TRANS_COST = 0.001
     CYCLE = 10
     MAX_HOLDING = 30
+    RISKFREE = 0.08325
 
     # mixed statregies: percentage as key, strategies as value
-    mixed = {0.23: [20, MomentumReturn, RiskParity],
-             0.24: [10, PriceReverse, RiskParity],
-             0.26: [10, Price_High_Low, RiskParity],
-             0.27: [5, MomentumReturn, RiskParity]}
+    mixed = [[0.23, 20, MomentumReturn, RiskParity],
+             [0.24, 10, PriceReverse, RiskParity],
+             [0.26, 10, Price_High_Low, RiskParity],
+             [0.27, 5, MomentumReturn, RiskParity]]
 
     weight = np.linspace(0, 1, 11)
     record = pd.DataFrame(columns=['w', 'j', 'k', 'ret', 'vol', 'sharpe'])
 
     for w in weight:
         for j in weight:
-            k = 1 - w - j
-            if w == j:
-                w += 0.05
-                j -= 0.05
-            if j == k:
-                j += 0.05
-                k -= 0.05
-            if k == w:
-                k += 0.05
-                w -= 0.05
-            if (k < 0) or (w < 0) or (j < 0):
-                continue
+            for l in weight:
+                k = 1 - w - j - l
+                if (k < 0) or (w < 0) or (j < 0) or (l < 0):
+                    continue
 
-            strat = {w: [20, MomentumReturn, RiskParity],
-                     j: [10, Price_High_Low, RiskParity],
-                     k: [5, MomentumReturn, RiskParity]}
+                strat = [[w, 20, MomentumReturn, RiskParity],
+                         [j, 10, Price_High_Low, RiskParity],
+                         [k, 5, MomentumReturn, RiskParity],
+                         [l, 10, PriceReverse, RiskParity]]
 
-            history, cost = mix_backtesting(strat)
-            ret, vol, sharpe = sharpe_ratio(history, cost)
+                history, cost = mix_backtesting(strat)
+                ret, vol, sharpe = sharpe_ratio(history, cost)
 
-            new_row = {'w': w, 'j': j, 'k': k,
-                       'ret': ret, 'vol': vol, 'sharpe': sharpe}
+                new_row = {'w': w, 'j': j, 'k': k,
+                           'ret': ret, 'vol': vol, 'sharpe': sharpe}
 
-            record = record.append(new_row, ignore_index=True)
+                record = record.append(new_row, ignore_index=True)
 

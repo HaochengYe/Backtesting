@@ -137,7 +137,7 @@ class Agent:
                 ttl_ret = np.maximum((path[-1] - self.tran_cost) / path[0], 0)
                 annual_ret = np.power(np.power(ttl_ret, 1/len(path)), 252) - 1
                 annual_vol = (np.diff(path) / path[1:]).std() * np.power(252, 1/2)
-                annual_sharpe = annual_ret / annual_vol
+                annual_sharpe = (annual_ret - RISKFREE) / annual_vol
 
                 portfolio_re.iloc[row][col] = annual_ret
                 portfolio_vol.iloc[row][col] = annual_vol
@@ -202,13 +202,14 @@ if __name__ == '__main__':
     ticker = list(df.columns)
     ticker.remove('SPY')
 
-    INITIAL_BALANCE = 60000
+    INITIAL_BALANCE = 50000
     TRANS_COST = 0.001
     CYCLE = 5
     MAX_HOLDING = 30
+    RISKFREE = 0.08325
 
     wsw = Agent(df[3000:], trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
-    return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
+    # return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
 
     '''
     return_chart = return_chart.astype(float)
