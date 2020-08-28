@@ -70,11 +70,14 @@ class Agent:
         portfolio = self.portfolio
 
         for i in portfolio:
-            if i not in target_portfolio and i != 'cash':
-                cost += portfolio[i] * data[i].iloc[time] * TRANS_COST
-            elif i in target_portfolio and i != 'cash':
-                diff = abs(portfolio[i] - target_portfolio[i])
-                cost += diff * data[i].iloc[time] * TRANS_COST
+            if i != 'cash':
+                ret = (data[i].iloc[time] - data[i].iloc[time - self.cycle]) / data[i].iloc[time - self.cycle]
+                record.append(ret)
+                if i not in target_portfolio:
+                    cost += portfolio[i] * data[i].iloc[time] * TRANS_COST
+                else:
+                    diff = abs(portfolio[i] - target_portfolio[i])
+                    cost += diff * data[i].iloc[time] * TRANS_COST
 
         for j in target_portfolio:
             if j not in portfolio:
@@ -204,11 +207,17 @@ if __name__ == '__main__':
 
     INITIAL_BALANCE = 50000
     TRANS_COST = 0.001
-    CYCLE = 5
+    CYCLE = 10
     MAX_HOLDING = 30
     RISKFREE = 0.08325
 
-    wsw = Agent(df[3000:], trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
+    record = []
+
+    wsw = Agent(df, trading_strategies, rebalancing_strategies, CYCLE, MAX_HOLDING)
+    # wsw.Backtest_Single(MomentumReturn, RiskParity)
+
+    targ = wsw.PitchStock(Price_High_Low, RiskParity, df.shape[0]-1)
+    print(targ)
     # return_chart, vol_chart, sharpe_chart = wsw.Backtest_All()
 
     '''
