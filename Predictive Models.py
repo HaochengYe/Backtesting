@@ -47,7 +47,7 @@ def data_preprocess(dta):
     return dta[dta.index >= dta['SPY'].first_valid_index()]
 
 
-def coin_group(tick, dta):
+def coint_group(tick, dta):
     """
     Use cointegration test and correlation to find predictive stocks for target
     :param tick: string for the target stock
@@ -80,8 +80,22 @@ def coin_group(tick, dta):
     best_corr = sorted(correlat, key=correlat.get, reverse=True)[:10]
 
     intersect = list(set(best_coint) & set(best_corr))
+    print("There are {} cointegrated stocks.".format(len(intersect)))
+    return intersect, temp
 
-    return intersect
+
+def regression_mod(X, Y, dta):
+    """
+    Use basic regression model to forecast
+    :param X: list of strings of tickers
+    :param Y: string of lagged target ticker
+    :param dta: the data set that contains X and Y
+    :return: the regression model (statsmodels mod format)
+    """
+    X = dta[X]
+    Y = dta[Y]
+    mod = sm.OLS(Y, sm.add_constant(X)).fit()
+    return mod
 
 
 sp = pd.read_csv('sp500_stock.csv')
@@ -90,7 +104,12 @@ dta = pd.read_csv('broader_stock.csv')
 sp = data_preprocess(sp)
 dta = data_preprocess(dta)
 
+ticker_list = list(dta.columns)
+ticker_list.remove('SPY')
 
+for tick in ticker_list:
+    coint_corr, coint_dta = coint_group(tick, dta)
+    reg_model = regression_mod(coint_corr, coint_dta['%s_LAG' % tick], coint_dta)
 
 
 
