@@ -182,7 +182,7 @@ observed_data = data.iloc[:cutoff]
 ticker_list = list(data.columns)
 ticker_list.remove('SPY')
 
-tick = 'TGI'
+tick = 'MSFT'
 arr = observed_data[tick]
 '''
 if len(arr) < 2000:
@@ -203,9 +203,9 @@ train_length = 30
 X = []
 Y = []
 
-for i in range(len(observed_data) - 120):
-    x = observed_data[coint_corr].iloc[i:i + train_length].values.T.flatten()
-    y = observed_data[tick].iloc[i + 120]
+for i in range(len(coint_dta) - 120):
+    x = coint_dta[coint_corr].iloc[i:i + train_length].values.T.flatten()
+    y = coint_dta[tick].iloc[i + 120]
     X.append(x)
     Y.append(y)
 
@@ -226,4 +226,4 @@ mm_scaler_y = mm_scaler_y.fit(Y)
 y_pred = mm_scaler_y.inverse_transform(y_pred)
 
 # examine trading profit
-mlasset, mlrecord = train_profit(tick, y_pred.flatten(), observed_data.shift(-30).iloc[:-30])
+mlasset, mlrecord = train_profit(tick, y_pred.flatten(), coint_dta.shift(-30).iloc[:-30])
