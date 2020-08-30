@@ -161,7 +161,7 @@ def LSTM_mod(X, Y, scaler_x, scaler_y):
               validation_data=(X_test, Y_test),
               epochs=50,
               callbacks=[es],
-              verbose=2)
+              verbose=0)
 
     return model
 
@@ -175,89 +175,137 @@ data = data_preprocess(data)
 ticker_list = list(data.columns)
 ticker_list.remove('SPY')
 
-tick = 'MSFT'
-original_series = data[tick]
+_ = int(0)
+result = {}
 
-if tick in sp.columns:
-    original_data = pd.concat([sp.drop([tick], axis=1), original_series], axis=1)
-    original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
-else:
-    original_data = pd.concat([sp, original_series], axis=1)
-    original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
+for tick in ticker_list:
 
-cutoff = int(original_data.shape[0] * 0.8)
-observed_data = original_data.iloc[:cutoff]
+    original_series = data[tick]
 
-arr = observed_data[tick]
+    if tick in sp.columns:
+        original_data = pd.concat([sp.drop([tick], axis=1), original_series], axis=1)
+        original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
+    else:
+        original_data = pd.concat([sp, original_series], axis=1)
+        original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
 
-'''
-if len(arr) < 2000:
-    continue
-'''
+    if original_data.index[-1] != data.index[-1]:
+        _ += 1
+        print("{} / {}".format(_, len(ticker_list)))
+        continue
 
-coint_corr = coint_group(tick, observed_data)
+    cutoff = int(original_data.shape[0] * 0.8)
+    observed_data = original_data.iloc[:cutoff]
 
-# This is the training period performance.
-# regression model
-reg_model = regression_mod('%s_LAG' % tick, observed_data)
-y_pred = reg_model.predict()
+    arr = observed_data[tick]
 
-# examine trading profit
-regasset, regrecord = measure_profit(tick, y_pred, 0, observed_data)
-'''
-# machine learning model
-train_length = 30
-X, Y = [], []
+    if len(arr) < 2000:
+        _ += 1
+        print("{} / {}".format(_, len(ticker_list)))
+        continue
 
-for i in range(len(observed_data) - train_length):
-    x = observed_data[coint_corr].iloc[i:i + train_length].values.T.flatten()
-    y = observed_data['%s_LAG' % tick].iloc[i]
-    X.append(x)
-    Y.append(y)
+    coint_corr = coint_group(tick, observed_data)
 
-X = np.array(X)
-Y = np.array(Y).reshape(-1, 1)
+    # machine learning model
+    train_length = 30
+    X, Y = [], []
 
-print(X.shape, Y.shape)
-mm_scaler_x = StandardScaler()
-mm_scaler_y = StandardScaler()
-lstm_mod = LSTM_mod(X, Y, mm_scaler_x, mm_scaler_y)
+    for i in range(len(observed_data) - train_length):
+        x = observed_data[coint_corr].iloc[i:i + train_length].values.T.flatten()
+        y = observed_data['%s_LAG' % tick].iloc[i + train_length]
+        X.append(x)
+        Y.append(y)
 
-mm_scaler_x = mm_scaler_x.fit(X)
-scale = mm_scaler_x.transform(X)
-scale = scale.reshape(scale.shape[0], 1, scale.shape[1])
+    X = np.array(X)
+    Y = np.array(Y).reshape(-1, 1)
 
-y_pred = lstm_mod.predict(scale)
-mm_scaler_y = mm_scaler_y.fit(Y)
-y_pred = mm_scaler_y.inverse_transform(y_pred)
+    print(X.shape, Y.shape)
+    mm_scaler_x = StandardScaler()
+    mm_scaler_y = StandardScaler()
+    lstm_mod = LSTM_mod(X, Y, mm_scaler_x, mm_scaler_y)
 
-# examine trading profit
-mlasset, mlrecord = measure_profit(tick, y_pred.flatten(), 0, observed_data.shift(-train_length).iloc[:-train_length])
-'''
-# Now we switch to actual testing where only fit models after 100 more new data points
-test_data = original_data.iloc[cutoff:]
-init_asset = 0
-regrecord_os = []
+    mm_scaler_x = mm_scaler_x.fit(X)
+    scale = mm_scaler_x.transform(X)
+    scale = scale.reshape(scale.shape[0], 1, scale.shape[1])
 
-# update every 100 new data
-T = test_data.shape[0] // 120
+    y_pred = lstm_mod.predict(scale)
+    mm_scaler_y = mm_scaler_y.fit(Y)
+    y_pred = mm_scaler_y.inverse_transform(y_pred)
 
-for i in range(T):
-    test_coint_corr = test_data[coint_corr].iloc[i*120:(i+1)*120]
-    y_pred_os = reg_model.predict(sm.add_constant(test_coint_corr))
-    init_asset, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[i*120:(i+1)*120])
-    regrecord_os += record
+    # examine trading profit
+    mlasset, mlrecord = measure_profit(tick, y_pred.flatten(), 0, observed_data.shift(-train_length).iloc[:-train_length])
 
-    # update model after record performance
-    new_observed_data = original_data.iloc[i * 120:cutoff + (i+1) * 120]
-    coint_corr = coint_group(tick, new_observed_data)
+    # Now we switch to actual testing where only fit models after 100 more new data points
+    test_data = original_data.iloc[cutoff:]
+    init_asset = 0
+    mlrecord_os = []
 
-    reg_model = regression_mod(coint_corr, '%s_LAG' % tick, new_observed_data)
+    # update every 100 new data
+    T = test_data.shape[0] // 120
 
-test_coint_corr = test_data[coint_corr].iloc[T * 120:]
-y_pred_os = reg_model.predict(sm.add_constant(test_coint_corr))
-regasset_os, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[T * 120:])
-regrecord_os += record
+    # machine learning model test data performance
+    for i in range(T):
 
-# machine learning model test data performance
-X_os, Y_os = [], []
+        test_X = []
+
+        for t in range(120):
+            test_prep = original_data[coint_corr].iloc[(cutoff-30+t+i*120):(cutoff+t+i*120)].values.T.flatten()
+            test_X.append(test_prep)
+
+        test_X = np.array(test_X)
+        scale_test_X = mm_scaler_x.transform(test_X)
+        scale_test_X = scale_test_X.reshape(scale_test_X.shape[0], 1, scale_test_X.shape[1])
+
+        y_pred_os = lstm_mod.predict(scale_test_X)
+        y_pred_os = mm_scaler_y.inverse_transform(y_pred_os)
+
+        init_asset, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[i * 120:(i + 1) * 120])
+        mlrecord_os += record
+
+        # update model after record performance
+        new_observed_data = original_data.iloc[i * 120:cutoff + (i + 1) * 120]
+        coint_corr = coint_group(tick, new_observed_data)
+
+        X, Y = [], []
+
+        for t in range(len(new_observed_data) - train_length):
+            x = new_observed_data[coint_corr].iloc[t:t + train_length].values.T.flatten()
+            y = new_observed_data['%s_LAG' % tick].iloc[t + train_length]
+            X.append(x)
+            Y.append(y)
+
+        X = np.array(X)
+        Y = np.array(Y).reshape(-1, 1)
+
+        mm_scaler_x = StandardScaler()
+        mm_scaler_y = StandardScaler()
+        lstm_mod = LSTM_mod(X, Y, mm_scaler_x, mm_scaler_y)
+
+
+    test_X = []
+
+    for t in range(test_data.shape[0] % 120):
+        test_prep = original_data[coint_corr].iloc[(cutoff-30+t+T*120):(cutoff+t+T*120)].values.T.flatten()
+        test_X.append(test_prep)
+
+    test_X = np.array(test_X)
+    scale_test_X = mm_scaler_x.transform(test_X)
+    scale_test_X = scale_test_X.reshape(scale_test_X.shape[0], 1, scale_test_X.shape[1])
+
+    y_pred_os = lstm_mod.predict(scale_test_X)
+    y_pred_os = mm_scaler_y.inverse_transform(y_pred_os)
+
+    mlasset_os, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[T * 120:])
+    mlrecord_os += record
+
+    # record information into dataframe
+    var_in = np.var(mlrecord) / len(mlrecord)
+    var_os = np.var(mlrecord_os) / len(mlrecord_os)
+
+    result[tick] = [mlasset, var_in, mlasset_os, var_os]
+
+    _ += 1
+    print("{} / {}".format(_, len(ticker_list)))
+
+result_dta = pd.DataFrame(result)
+result_dta.to_csv('MachineLearning_Prediction.csv')
