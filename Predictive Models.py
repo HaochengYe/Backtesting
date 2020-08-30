@@ -124,6 +124,9 @@ for tick in ['AME', 'MSFT']:
         original_data = pd.concat([sp, original_series], axis=1)
         original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
 
+    if original_data.index[-1] != data.index[-1]:
+        continue
+
     cutoff = int(original_data.shape[0] * 0.8)
     observed_data = original_data.iloc[:cutoff]
 
