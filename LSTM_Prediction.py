@@ -60,7 +60,7 @@ def coint_group(tick, dta):
     cointegrat = {}
     correlat = {}
 
-    for i in dta.columns[1:-2]:
+    for i in dta.columns[:-2]:
         x = dta[i]
         score, pval, _ = coint(x, y, trend='ct')
         corr = x.corr(y)
@@ -173,7 +173,6 @@ sp = data_preprocess(sp)
 data = data_preprocess(data)
 
 ticker_list = list(data.columns)
-ticker_list.remove('Date')
 ticker_list.remove('SPY')
 
 _ = int(0)
