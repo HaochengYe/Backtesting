@@ -5,6 +5,11 @@ import pandas as pd
 import numpy as np
 
 from statsmodels.tsa.stattools import coint
+import warnings
+
+from pandas.core.common import SettingWithCopyWarning
+
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 
 def data_preprocess(dta):
@@ -114,7 +119,7 @@ ticker_list.remove('SPY')
 _ = int(0)
 result = {}
 
-for tick in ticker_list:
+for tick in ticker_list[0:100]:
     original_series = data[tick]
 
     if tick in sp.columns:
@@ -125,6 +130,8 @@ for tick in ticker_list:
         original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
 
     if original_data.index[-1] != data.index[-1]:
+        _ += 1
+        print("{} / {}".format(_, len(ticker_list)))
         continue
 
     cutoff = int(original_data.shape[0] * 0.8)
@@ -133,6 +140,8 @@ for tick in ticker_list:
     arr = observed_data[tick]
 
     if len(arr) < 2000:
+        _ += 1
+        print("{} / {}".format(_, len(ticker_list)))
         continue
 
     coint_corr = coint_group(tick, observed_data)
