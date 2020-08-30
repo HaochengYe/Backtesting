@@ -1,18 +1,4 @@
-import yfinance as yf
-
-from datetime import datetime
 import matplotlib.pyplot as plt
-
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-
-# ML imports
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM, Activation
-import keras.backend as K
-from keras.callbacks import EarlyStopping
-from tensorflow.keras import initializers
-
-from sklearn.model_selection import train_test_split
 
 import statsmodels.api as sm
 import pandas as pd
@@ -40,12 +26,6 @@ def data_preprocess(dta):
     return dta[dta.index >= dta['SPY'].first_valid_index()]
 
 
-def coeff_deter(y_true, y_pred):
-    SS_res = K.sum(K.square(y_true - y_pred) * 1e6)
-    SS_tot = K.sum(K.square(y_true - K.mean(y_true)) * 1e6)
-    return 1 - SS_res / (SS_tot + K.epsilon())
-
-
 def coint_group(tick, dta):
     """
     Use cointegration test and correlation to find predictive stocks for target
@@ -53,24 +33,15 @@ def coint_group(tick, dta):
     :param dta: the data file (csv) that contains the tick
     :return: a list of tickers that are in sp500 which predict the target
     """
-    original_series = dta[tick]
+    dta['%s_LAG' % tick] = dta[tick].shift(-120)
+    dta.dropna(inplace=True)
 
-    if tick in sp.columns:
-        temp = pd.concat([sp.drop([tick], axis=1), original_series], axis=1)
-        temp = temp[temp[tick].notnull()].dropna(axis=1)
-    else:
-        temp = pd.concat([sp, original_series], axis=1)
-        temp = temp[temp[tick].notnull()].dropna(axis=1)
-
-    temp['%s_LAG' % tick] = temp[tick].shift(-120)
-    temp.dropna(inplace=True)
-
-    y = temp['%s_LAG' % tick]
+    y = dta['%s_LAG' % tick]
     cointegrat = {}
     correlat = {}
 
-    for i in temp.columns[:-2]:
-        x = temp[i]
+    for i in dta.columns[:-2]:
+        x = dta[i]
         score, pval, _ = coint(x, y, trend='ct')
         corr = x.corr(y)
 
@@ -81,14 +52,18 @@ def coint_group(tick, dta):
     best_corr = sorted(correlat, key=correlat.get, reverse=True)[:10]
 
     intersect = list(set(best_coint) & set(best_corr))
-    print("There are {} cointegrated stocks.".format(len(intersect)))
-    return intersect, temp
+    if len(intersect) > 0:
+        print("There are {} cointegrated stocks.".format(len(intersect)))
+        return intersect
+    else:
+        print("Intersection is empty.")
+        return best_coint[:3]
 
 
-def train_profit(tick, fitted_val, dta):
+def measure_profit(tick, fitted_val, asset, dta):
     inventory = 0
-    asset = 0
-    record = [0]
+    asset = asset
+    record = [asset]
     forecast_diff = fitted_val
     T = min(len(forecast_diff), len(dta))
 
@@ -110,10 +85,10 @@ def train_profit(tick, fitted_val, dta):
             asset = record[-1]
         record.append(asset)
 
-    return asset, record
+    return asset, record[1:]
 
 
-def regression_mod(Y, dta):
+def regression_mod(X, Y, dta):
     """
     Use basic regression model to forecast
     :param X: list of strings of tickers
@@ -121,54 +96,10 @@ def regression_mod(Y, dta):
     :param dta: the data set that contains X and Y
     :return: the regression model (statsmodels mod format)
     """
-    X = dta[coint_corr]
+    X = dta[X]
     Y = dta[Y]
     mod = sm.OLS(Y, sm.add_constant(X)).fit()
     return mod
-
-
-def LSTM_mod(X, Y, scaler_x, scaler_y):
-    """
-    To adjust lstm machine learning model architecture (layers, activations, kernels...)
-    :param X: np arrays
-    :param Y: np array (1 dimensional)
-    :param scaler_x: a scaler class from sklearn (unfitted)
-    :param scaler_y: a scaler class from sklearn (unfitted)
-    :return:
-    """
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.4, random_state=42)
-
-    scaler_x = scaler_x.fit(X_train)
-    scaler_y = scaler_y.fit(Y_train)
-
-    X_train = scaler_x.transform(X_train)
-    Y_train = scaler_y.transform(Y_train)
-
-    X_test = scaler_x.transform(X_test)
-    Y_test = scaler_y.transform(Y_test)
-
-    X_train = X_train.reshape(X_train.shape[0], 1, X_train.shape[1])
-    X_test = X_test.reshape(X_test.shape[0], 1, X_test.shape[1])
-
-    initializer = initializers.glorot_normal(seed=42)
-    model = Sequential()
-    model.add(LSTM(20, input_shape=(X_train.shape[1], X_train.shape[2]), kernel_initializer=initializer))
-    model.add(Dropout(0.4))
-    model.add(Dense(10, kernel_initializer=initializer))
-    model.add(Dropout(0.4))
-    model.add(Dense(1, kernel_initializer=initializer))
-    model.compile(loss='mae', optimizer='adam', metrics=[coeff_deter])
-
-    es = EarlyStopping(monitor='val_coeff_deter', mode='max', patience=5)
-
-    model.fit(X_train, Y_train,
-              batch_size=32,
-              validation_data=(X_test, Y_test),
-              epochs=50,
-              callbacks=[es],
-              verbose=2)
-
-    return model
 
 
 sp = pd.read_csv('sp500_stock.csv')
@@ -176,54 +107,73 @@ data = pd.read_csv('broader_stock.csv')
 
 sp = data_preprocess(sp)
 data = data_preprocess(data)
-cutoff = int(data.shape[0] * 0.8)
-observed_data = data.iloc[:cutoff]
 
 ticker_list = list(data.columns)
 ticker_list.remove('SPY')
 
-tick = 'MSFT'
-arr = observed_data[tick]
-'''
-if len(arr) < 2000:
-    continue
-'''
-coint_corr, coint_dta = coint_group(tick, observed_data)
+_ = int(0)
+result = {}
 
-# regression model
+for tick in ['AME', 'MSFT']:
+    original_series = data[tick]
 
-reg_model = regression_mod('%s_LAG' % tick, coint_dta)
-y_pred = reg_model.predict()
+    if tick in sp.columns:
+        original_data = pd.concat([sp.drop([tick], axis=1), original_series], axis=1)
+        original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
+    else:
+        original_data = pd.concat([sp, original_series], axis=1)
+        original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
 
-# examine trading profit
-regasset, regrecord = train_profit(tick, y_pred, coint_dta)
+    cutoff = int(original_data.shape[0] * 0.8)
+    observed_data = original_data.iloc[:cutoff]
 
-# machine learning model
-train_length = 30
-X = []
-Y = []
+    arr = observed_data[tick]
 
-for i in range(len(coint_dta) - 120):
-    x = coint_dta[coint_corr].iloc[i:i + train_length].values.T.flatten()
-    y = coint_dta[tick].iloc[i + 120]
-    X.append(x)
-    Y.append(y)
+    if len(arr) < 2000:
+        continue
 
-X = np.array(X)
-Y = np.array(Y).reshape(-1, 1)
+    coint_corr = coint_group(tick, observed_data)
 
-print(X.shape, Y.shape)
-mm_scaler_x = StandardScaler()
-mm_scaler_y = StandardScaler()
-lstm_mod = LSTM_mod(X, Y, mm_scaler_x, mm_scaler_y)
+    # This is the training period performance.
+    # regression model
+    reg_model = regression_mod(coint_corr, '%s_LAG' % tick, observed_data)
+    y_pred = reg_model.predict()
 
-mm_scaler_x = mm_scaler_x.fit(X)
-scale = mm_scaler_x.transform(X)
-scale = scale.reshape(scale.shape[0], 1, scale.shape[1])
+    # examine trading profit
+    regasset, regrecord = measure_profit(tick, y_pred, 0, observed_data)
 
-y_pred = lstm_mod.predict(scale)
-mm_scaler_y = mm_scaler_y.fit(Y)
-y_pred = mm_scaler_y.inverse_transform(y_pred)
+    # Now we switch to actual testing where only fit models after 100 more new data points
+    test_data = original_data.iloc[cutoff:]
+    init_asset = 0
+    regrecord_os = []
 
-# examine trading profit
-mlasset, mlrecord = train_profit(tick, y_pred.flatten(), coint_dta.shift(-30).iloc[:-30])
+    # update every 100 new data
+    T = test_data.shape[0] // 120
+
+    for i in range(T):
+        test_coint_corr = test_data[coint_corr].iloc[i * 120:(i + 1) * 120]
+        y_pred_os = reg_model.predict(sm.add_constant(test_coint_corr))
+        init_asset, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[i * 120:(i + 1) * 120])
+        regrecord_os += record
+
+        # update model after record performance
+        new_observed_data = original_data.iloc[i * 120:cutoff + (i + 1) * 120]
+        coint_corr = coint_group(tick, new_observed_data)
+
+        reg_model = regression_mod(coint_corr, '%s_LAG' % tick, new_observed_data)
+
+    test_coint_corr = test_data[coint_corr].iloc[T * 120:]
+    y_pred_os = reg_model.predict(sm.add_constant(test_coint_corr))
+    regasset_os, record = measure_profit(tick, y_pred_os, init_asset, test_data.iloc[T * 120:])
+    regrecord_os += record
+
+    var_in = np.var(regrecord) / len(regrecord)
+    var_os = np.var(regrecord_os) / len(regrecord_os)
+
+    result[tick] = [regasset, var_in, regasset_os, var_os]
+
+    _ += 1
+    print("{} / {}".format(_, len(ticker_list)))
+
+result_dta = pd.DataFrame(result)
+result_dta.to_csv('Regression_Prediction.csv')
