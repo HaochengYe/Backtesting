@@ -114,7 +114,7 @@ ticker_list.remove('SPY')
 _ = int(0)
 result = {}
 
-for tick in ['AME', 'MSFT']:
+for tick in ticker_list:
     original_series = data[tick]
 
     if tick in sp.columns:
