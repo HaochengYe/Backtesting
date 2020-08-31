@@ -119,7 +119,7 @@ ticker_list.remove('SPY')
 _ = int(0)
 result = {}
 
-for tick in ticker_list[0:100]:
+for tick in ticker_list[100:200]:
     original_series = data[tick]
 
     if tick in sp.columns:
