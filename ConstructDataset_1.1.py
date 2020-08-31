@@ -44,11 +44,11 @@ def data_collection(ticker_list, del_col, start, end):
 
 
 if __name__ == '__main__':
-    txt_file = open('sp_ticker_list.txt', 'r')
+    txt_file = open('broader_ticker.txt', 'r')
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
     START = datetime(1980, 1, 1)
-    END = datetime(2020, 8, 15)
+    END = datetime(2020, 8, 29)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
@@ -57,4 +57,4 @@ if __name__ == '__main__':
     df = pd.concat(raw, axis=1)
 
     df.dropna(how='all', inplace=True)
-    df.to_csv('sp500_stock.csv')
+    df.to_csv('broader_stock_temp.csv')
