@@ -53,8 +53,8 @@ def coint_group(tick, dta):
         cointegrat[i] = pval
         correlat[i] = corr
 
-    best_coint = sorted(cointegrat, key=cointegrat.get)[:10]
-    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:10]
+    best_coint = sorted(cointegrat, key=cointegrat.get)[:20]
+    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:20]
 
     intersect = list(set(best_coint) & set(best_corr))
     if len(intersect) > 0:
