@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import pandas as pd
 import numpy as np
+from sklearn.linear_model import LassoCV
+from sklearn.linear_model import RidgeCV
+from sklearn.metrics import mean_squared_error
 
 from statsmodels.tsa.stattools import coint
 import warnings
@@ -53,8 +56,8 @@ def coint_group(tick, dta):
         cointegrat[i] = pval
         correlat[i] = corr
 
-    best_coint = sorted(cointegrat, key=cointegrat.get)[:20]
-    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:20]
+    best_coint = sorted(cointegrat, key=cointegrat.get)[:50]
+    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:50]
 
     intersect = list(set(best_coint) & set(best_corr))
     if len(intersect) > 0:
@@ -107,10 +110,8 @@ def regression_mod(X, Y, dta):
     return mod
 
 
-sp = pd.read_csv('sp500_stock.csv')
 data = pd.read_csv('broader_stock.csv')
 
-sp = data_preprocess(sp)
 data = data_preprocess(data)
 
 ticker_list = list(data.columns)
@@ -122,11 +123,11 @@ result = {}
 for tick in ticker_list[166:200]:
     original_series = data[tick]
 
-    if tick in sp.columns:
-        original_data = pd.concat([sp.drop([tick], axis=1), original_series], axis=1)
+    if tick in data.columns:
+        original_data = pd.concat([data.drop([tick], axis=1), original_series], axis=1)
         original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
     else:
-        original_data = pd.concat([sp, original_series], axis=1)
+        original_data = pd.concat([data, original_series], axis=1)
         original_data = original_data[original_data[tick].notnull()].dropna(axis=1)
 
     if original_data.index[-1] != data.index[-1]:
