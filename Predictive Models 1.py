@@ -53,8 +53,8 @@ def coint_group(tick, dta):
         cointegrat[i] = pval
         correlat[i] = corr
 
-    best_coint = sorted(cointegrat, key=cointegrat.get)[:50]
-    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:50]
+    best_coint = sorted(cointegrat, key=cointegrat.get)[:20]
+    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:20]
 
     intersect = list(set(best_coint) & set(best_corr))
     if len(intersect) > 0:
@@ -108,7 +108,7 @@ def regression_mod(X, Y, dta):
 def l1_reg(X, Y, dta):
     X = dta[X].values
     Y = dta[Y].values
-    mod = LassoCV(alphas=alphas, fit_intercept=True, cv=10, n_jobs=-1).fit(X, Y)
+    mod = LassoCV(alphas=alphas, max_iter=5000, fit_intercept=True, cv=10, n_jobs=-1).fit(X, Y)
     return mod
 
 
@@ -201,13 +201,14 @@ for tick in ticker_list[0:5]:
     init_asset = 0
     regasset, regrecord = measure_profit(y_trade, best_pred, init_asset)
     net_profit = (regasset - init_asset) - (y_trade[-1] - y_trade[0])
-
     var_in = np.var(regrecord) / len(regrecord)
+    sharpe = net_profit / var_in
 
-    result[tick] = [net_profit, regasset, var_in, l1_mse, l2_mse, ols_mse]
+    result[tick] = [net_profit, regasset, var_in, sharpe, l1_mse, l2_mse, ols_mse]
 
     _ += 1
     print("{} / {}".format(_, len(ticker_list)))
 
-result_dta = pd.DataFrame(result)
-result_dta.to_csv('Regression_Prediction.csv')
+result_dta = pd.DataFrame(result).T
+result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
+result_dta.to_csv('Regression_Prediction_1.csv')
