@@ -53,8 +53,8 @@ def coint_group(tick, dta):
         cointegrat[i] = pval
         correlat[i] = corr
 
-    best_coint = sorted(cointegrat, key=cointegrat.get)[:20]
-    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:20]
+    best_coint = sorted(cointegrat, key=cointegrat.get)[:50]
+    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:50]
 
     intersect = list(set(best_coint) & set(best_corr))
     if len(intersect) > 0:
@@ -130,7 +130,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[0:5]:
+for tick in ticker_list[200:300]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -210,5 +210,5 @@ for tick in ticker_list[0:5]:
     print("{} / {}".format(_, len(ticker_list)))
 
 result_dta = pd.DataFrame(result).T
-result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
-result_dta.to_csv('Regression_Prediction_1.csv')
+result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
+result_dta.to_csv('Regression_Prediction_2.csv')
