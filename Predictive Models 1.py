@@ -210,5 +210,5 @@ for tick in ticker_list[600:]:
     print("{} / {}".format(_, len(ticker_list)))
 
 result_dta = pd.DataFrame(result).T
-result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
+result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
 result_dta.to_csv('Regression_Prediction_1.csv')
