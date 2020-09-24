@@ -130,7 +130,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[0:5]:
+for tick in ticker_list[600:]:
     original_series = data[tick]
 
     if tick in data.columns:
