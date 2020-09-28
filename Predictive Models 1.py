@@ -53,8 +53,8 @@ def coint_group(tick, dta):
         cointegrat[i] = pval
         correlat[i] = corr
 
-    best_coint = sorted(cointegrat, key=cointegrat.get)[:20]
-    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:20]
+    best_coint = sorted(cointegrat, key=cointegrat.get)[:50]
+    best_corr = sorted(correlat, key=correlat.get, reverse=True)[:50]
 
     intersect = list(set(best_coint) & set(best_corr))
     if len(intersect) > 0:
@@ -130,7 +130,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[600:]:
+for tick in ticker_list[0:500]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -156,7 +156,7 @@ for tick in ticker_list[600:]:
 
     arr = observed_data[tick]
 
-    if len(arr) < 2000:
+    if len(arr) < 1000:
         _ += 1
         print("{} / {}".format(_, len(ticker_list)))
         continue

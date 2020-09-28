@@ -47,8 +47,8 @@ if __name__ == '__main__':
     txt_file = open('broader_ticker.txt', 'r')
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
-    START = datetime(1980, 1, 1)
-    END = datetime(2020, 9, 22)
+    START = datetime(2000, 1, 1)
+    END = datetime(2020, 9, 28)
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 
@@ -57,4 +57,4 @@ if __name__ == '__main__':
     df = pd.concat(raw, axis=1)
 
     df.dropna(how='all', inplace=True)
-    df.to_csv('broader_stock_temp.csv')
+    df.to_csv('broader_stock.csv')
