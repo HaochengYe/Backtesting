@@ -200,11 +200,15 @@ for tick in ticker_list[0:500]:
     # examine trading profit
     init_asset = 0
     regasset, regrecord = measure_profit(y_trade, best_pred, init_asset)
-    net_profit = (regasset - init_asset) - (y_trade[-1] - y_trade[0])
-    var_in = np.var(regrecord) / len(regrecord)
-    sharpe = net_profit / var_in
 
-    result[tick] = [net_profit, regasset, var_in, sharpe, l1_mse, l2_mse, ols_mse]
+    ttl_ret = (regasset - init_asset) / y_trade[0]
+    net_ret = (regasset - y_trade[-1] + y_trade[0]) / y_trade[0]
+
+    pct_record = np.array(regrecord) / np.array(y_trade)
+    var_record = np.var(pct_record)
+    sharpe = net_ret / var_record
+
+    result[tick] = [net_ret, ttl_ret, var_record, sharpe, l1_mse, l2_mse, ols_mse]
 
     _ += 1
     print("{} / {}".format(_, len(ticker_list)))
