@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LassoCV
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from statsmodels.tsa.stattools import coint
 import warnings
@@ -119,6 +119,10 @@ def l2_reg(X, Y, dta):
     return mod
 
 
+def pct_change(arr):
+    return np.diff(arr) / arr[1:]
+
+
 data = pd.read_csv('broader_stock.csv')
 data = data_preprocess(data)
 
@@ -177,10 +181,10 @@ for tick in ticker_list[0:500]:
     l2_pred = l2_model.predict(X_test)
     ols_pred = reg_model.predict(sm.add_constant(X_test))
 
-    l1_mse = mean_squared_error(Y_test.values, l1_pred)
-    l2_mse = mean_squared_error(Y_test.values, l2_pred)
-    ols_mse = mean_squared_error(Y_test.values, ols_pred.values)
-
+    l1_mse = mean_absolute_error(pct_change(Y_test.values), pct_change(l1_pred))
+    l2_mse = mean_absolute_error(pct_change(Y_test.values), pct_change(l2_pred))
+    ols_mse = mean_absolute_error(pct_change(Y_test.values), pct_change(ols_pred.values))
+    
     # selecting the best model
     mse_dict = {l1_mse: l1_model,
                 l2_mse: l2_model,
