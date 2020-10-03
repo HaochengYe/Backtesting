@@ -134,7 +134,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[0:500]:
+for tick in ticker_list[500:1000]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -219,4 +219,4 @@ for tick in ticker_list[0:500]:
 
 result_dta = pd.DataFrame(result).T
 result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
-result_dta.to_csv('Regression_Prediction_1.csv')
+result_dta.to_csv('Regression_Prediction_2.csv')
