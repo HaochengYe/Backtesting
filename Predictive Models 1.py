@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LassoCV
 from sklearn.linear_model import RidgeCV
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 
 from statsmodels.tsa.stattools import coint
 import warnings
@@ -134,7 +134,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[500:1000]:
+for tick in ticker_list[0:5]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -190,7 +190,8 @@ for tick in ticker_list[500:1000]:
                 l2_mse: l2_model,
                 ols_mse: reg_model}
 
-    best_model = mse_dict[min(mse_dict.keys())]
+    model_type = np.argmin(list(mse_dict.keys()))
+    best_model = mse_dict[list(mse_dict.keys())[model_type]]
 
     y_trade = trading_data['%s' % tick].values
     x_trade = trading_data[coint_corr].values
@@ -199,7 +200,6 @@ for tick in ticker_list[500:1000]:
         best_pred = best_model.predict(sm.add_constant(x_trade))
     else:
         best_pred = best_model.predict(x_trade)
-
 
     # examine trading profit
     init_asset = 0
@@ -210,13 +210,29 @@ for tick in ticker_list[500:1000]:
 
     pct_record = np.array(regrecord) / np.array(y_trade)
     var_record = np.var(pct_record)
-    sharpe = net_ret / var_record
+    sharpe = net_ret / (var_record + 1e-10)
 
-    result[tick] = [net_ret, ttl_ret, var_record, sharpe, l1_mse, l2_mse, ols_mse]
+    # prediction for the future
+    last_y = trading_data[tick].iloc[-1]
+    last_dta = trading_data[coint_corr].iloc[-1].values
+
+    if model_type == 2:
+        model = regression_mod(coint_corr, '%s_LAG' % tick, model_data)
+        pred = last_dta @ model.params[1:] + model.params[0]
+    elif model_type == 0:
+        model = l1_reg(coint_corr, '%s_LAG' % tick, model_data)
+        pred = model.predict(last_dta.reshape(1,-1))[0]
+    elif model_type == 1:
+        model = l2_reg(coint_corr, '%s_LAG' % tick, model_data)
+        pred = model.predict(last_dta.reshape(1,-1))[0]
+        
+    pred_ret = (pred - last_y) / last_y
+
+    result[tick] = [pred_ret, net_ret, ttl_ret, var_record, sharpe, l1_mse, l2_mse, ols_mse]
 
     _ += 1
     print("{} / {}".format(_, len(ticker_list)))
 
 result_dta = pd.DataFrame(result).T
-result_dta.columns = ['NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
+result_dta.columns = ['PredRet', 'NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
 result_dta.to_csv('Regression_Prediction_2.csv')
