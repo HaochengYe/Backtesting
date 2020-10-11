@@ -42,11 +42,13 @@ def coint_group(tick, dta):
     :return: a list of tickers that are in sp500 which predict the target
     """
     y = dta['%s_LAG' % tick]
+    y = pct_change(y)
     cointegrat = {}
     correlat = {}
 
     for i in dta.columns[:-2]:
         x = dta[i]
+        x = pct_change(x)
         score, pval, _ = coint(x, y, trend='ct')
         corr = x.corr(y)
 
@@ -134,7 +136,7 @@ result = {}
 
 alphas = np.linspace(0.001, 1000, 300)
 
-for tick in ticker_list[0:5]:
+for tick in ticker_list[0:500]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -235,4 +237,4 @@ for tick in ticker_list[0:5]:
 
 result_dta = pd.DataFrame(result).T
 result_dta.columns = ['PredRet', 'NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'L1_MSE', 'L2_MSE', 'OLS_MSE']
-result_dta.to_csv('Regression_Prediction_2.csv')
+result_dta.to_csv('Regression_Prediction_1.csv')
