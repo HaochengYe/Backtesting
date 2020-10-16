@@ -2,20 +2,19 @@ from sklearn.decomposition import PCA, FactorAnalysis
 
 # ML imports
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM, Activation
+from keras.layers import Dense, Dropout, LSTM
 import keras.backend as K
 from keras.callbacks import EarlyStopping
 from tensorflow.keras import initializers
+import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import r2_score
 
-import statsmodels.api as sm
 import pandas as pd
 import numpy as np
 
 from statsmodels.tsa.stattools import coint, adfuller
-
 
 
 def data_preprocess(dta):
@@ -140,7 +139,11 @@ def LSTM_mod(x_ml, y_ml):
 
     return model
 
+
 # operation
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
 
 data = pd.read_csv('broader_stock.csv')
 data = data_preprocess(data)
@@ -151,7 +154,7 @@ ticker_list.remove('SPY')
 _ = int(0)
 result = {}
 
-for tick in ticker_list[0:500]:
+for tick in ticker_list[0:5]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -231,8 +234,8 @@ for tick in ticker_list[0:500]:
     X_full_tran = transformer.fit_transform(X_full)
 
     X_fullml = []
-    for i in range(X_fullml.shape[0] - block_size):
-        x_temp = X_fullml[i:i+block_size,:].T.flatten()
+    for i in range(X_full_tran.shape[0] - block_size):
+        x_temp = X_full_tran[i:i+block_size,:].T.flatten()
         X_fullml.append(x_temp)
 
     X_fullml = np.array(X_fullml)
