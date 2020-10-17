@@ -13,6 +13,7 @@ from sklearn.metrics import r2_score
 
 import pandas as pd
 import numpy as np
+import random
 
 from statsmodels.tsa.stattools import coint, adfuller
 
@@ -120,16 +121,16 @@ def LSTM_mod(x_ml, y_ml):
 
     initializer = initializers.glorot_normal(seed=42)
     model = Sequential()
-    model.add(LSTM(100, input_shape=(xtr.shape[1], xtr.shape[2]), kernel_initializer=initializer, return_sequences=True))
-    model.add(Dropout(0.4))
-    model.add(LSTM(50, input_shape=(xtr.shape[1], xtr.shape[2]), kernel_initializer=initializer))
-    model.add(Dropout(0.4))
-    model.add(Dense(25, kernel_initializer=initializer))
-    model.add(Dropout(0.4))
+    model.add(LSTM(50, input_shape=(xtr.shape[1], xtr.shape[2]), kernel_initializer=initializer, return_sequences=True))
+    model.add(Dropout(0.2, seed=42))
+    model.add(LSTM(20, input_shape=(xtr.shape[1], xtr.shape[2]), kernel_initializer=initializer))
+    model.add(Dropout(0.2, seed=42))
+    model.add(Dense(10, kernel_initializer=initializer))
+    model.add(Dropout(0.2, seed=42))
     model.add(Dense(5, kernel_initializer=initializer))
     model.compile(loss='mae', optimizer='adam', metrics=[coeff_deter])
-
     es = EarlyStopping(monitor='val_coeff_deter', mode='max', patience=5)
+
     model.fit(xtr, ytr,
             batch_size=32,
             validation_data=(xva, yva),
@@ -148,6 +149,7 @@ session = tf.compat.v1.Session(config=config)
 # set seed
 np.random.seed(1)
 tf.compat.v1.set_random_seed(1)
+random.seed(1)
 
 data = pd.read_csv('broader_stock.csv')
 data = data_preprocess(data)
