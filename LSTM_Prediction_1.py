@@ -1,10 +1,10 @@
 from sklearn.decomposition import PCA, FactorAnalysis
 
 # ML imports
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM
-import keras.backend as K
-from keras.callbacks import EarlyStopping
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, LSTM
+import tensorflow.keras.backend as K
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras import initializers
 import tensorflow as tf
 
@@ -141,9 +141,13 @@ def LSTM_mod(x_ml, y_ml):
 
 
 # operation
-config = tf.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
-session = tf.Session(config=config)
+session = tf.compat.v1.Session(config=config)
+
+# set seed
+np.random.seed(1)
+tf.compat.v1.set_random_seed(1)
 
 data = pd.read_csv('broader_stock.csv')
 data = data_preprocess(data)
@@ -251,5 +255,5 @@ for tick in ticker_list[0:5]:
 
 result_dta = pd.DataFrame(result).T
 result_dta.columns = ['PredRet', 'NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'R2']
-result_dta.to_csv('LSTM_Prediction_1.csv')
+result_dta.to_csv('LSTM_Prediction_2.csv')
 
