@@ -160,7 +160,7 @@ ticker_list.remove('SPY')
 _ = int(0)
 result = {}
 
-for tick in ticker_list[0:500]:
+for tick in ticker_list[500:1000]:
     original_series = data[tick]
 
     if tick in data.columns:
@@ -257,5 +257,5 @@ for tick in ticker_list[0:500]:
 
 result_dta = pd.DataFrame(result).T
 result_dta.columns = ['PredRet', 'NetProfit', 'GrossProfit', 'Var', 'Sharpe', 'R2']
-result_dta.to_csv('LSTM_Prediction_1.csv')
+result_dta.to_csv('LSTM_Prediction_2.csv')
 
