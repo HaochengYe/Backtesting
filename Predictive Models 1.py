@@ -50,7 +50,7 @@ def coint_group(tick, dta):
         x = dta[i]
         x = pct_change(x)
         score, pval, _ = coint(x, y, trend='ct')
-        corr = x.corr(y)
+        corr = abs(x.corr(y))
 
         cointegrat[i] = pval
         correlat[i] = corr
@@ -75,7 +75,7 @@ def measure_profit(ture_val, fitted_val, asset):
     for t in range(len(fitted_val)):
         trend_good = fitted_val[t] > ture_val[t]
         price = ture_val[t]
-        if trend_good and inventory == 0:
+        if trend_good and inventory == 0 and t != len(price) - 1:
             # buy
             asset -= price
             inventory += 1

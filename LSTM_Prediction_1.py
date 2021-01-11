@@ -50,7 +50,7 @@ def measure_profit(price, indicator):
     for i in range(len(price)):
         trend_good = indicator[i] > 1
         p = price[i]
-        if trend_good and inventory == 0:
+        if trend_good and inventory == 0 and i != len(price) - 1:
             # buy
             asset -= p
             inventory += 1
