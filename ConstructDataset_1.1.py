@@ -1,6 +1,6 @@
 import os
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, date
 import pandas as pd
 import pytz
 import logging
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     sp500_list = [line.rstrip('\n') for line in txt_file]
 
     START = datetime(2000, 1, 1)
-    END = datetime(2021, 1, 10)
+    END = date.today()
 
     sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
 

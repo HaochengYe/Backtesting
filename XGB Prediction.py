@@ -1,5 +1,5 @@
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, date
 import matplotlib.pyplot as plt
 from statsmodels.tsa.stattools import coint
 import pandas as pd
@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, accuracy_score
 
 START = datetime(2000, 1, 1)
-END = datetime(2021, 1, 8)
+END = date.today()
 
 dta = pd.read_csv('broader_stock.csv')
 
