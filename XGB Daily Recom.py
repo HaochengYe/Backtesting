@@ -56,7 +56,7 @@ for t in target_list:
 
     temp_dta = temp_dta[temp_dta['Close'].notnull()]
     temp_dta['Close_LAG'] = temp_dta['Close'].shift(-1)
-    temp_dta.dropna(inplace=True)
+    temp_dta = temp_dta.iloc[:-1].dropna(axis=1)
 
     cointegrat = {}
     correlat = {}
