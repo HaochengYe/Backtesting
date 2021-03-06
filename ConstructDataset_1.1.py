@@ -26,7 +26,7 @@ def data_collection(ticker_list, del_col, start, end):
             hist_temp = temp.history(start=start, end=end)
             if hist_temp.shape[0] >= 500:
                 hist_temp.drop(del_col, axis=1, inplace=True)
-                hist_temp.columns = [ticker]
+                hist_temp = hist_temp.rename(columns={'Open': ticker + '_Open', 'Close': ticker + '_Close', 'Volume': ticker + '_Volume'})
                 status = "Successfully retrieve {}'s data.".format(ticker)
                 print(status)
                 logging.info(status)
@@ -43,6 +43,25 @@ def data_collection(ticker_list, del_col, start, end):
     return total
 
 
+def data_preprocess(dta):
+    # dta['Date'] = pd.to_datetime(dta['Date'], format='%Y-%m-%d')
+    # dta = dta.set_index(dta['Date'])
+    # NHLI not traded
+    # dta.drop(['Date', 'NHLI'], axis=1, inplace=True)
+    # dta.dropna(how='all', inplace=True)
+    for tick in dta.columns:
+        tick_series = dta[tick]
+        start_pos = tick_series.first_valid_index()
+        valid_series = tick_series.loc[start_pos:]
+        if valid_series.isna().sum() > 1:
+            dta.drop(tick, axis=1, inplace=True)
+
+    for tick in dta.columns:
+        dta[tick] = dta[tick].mask(dta[tick] == 0).ffill(downcast='infer')
+
+    return dta[dta.index >= dta['SPY_Close'].first_valid_index()]
+
+
 if __name__ == '__main__':
     txt_file = open('broader_ticker.txt', 'r')
     sp500_list = [line.rstrip('\n') for line in txt_file]
@@ -50,11 +69,12 @@ if __name__ == '__main__':
     START = datetime(2000, 1, 1)
     END = date.today()
 
-    sp500_del_col = ['Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
+    sp500_del_col = ['High', 'Low', 'Dividends', 'Stock Splits']
 
     init_logging()
     raw = data_collection(sp500_list, sp500_del_col, START, END)
     df = pd.concat(raw, axis=1)
 
     df.dropna(how='all', inplace=True)
+    df = data_preprocess(df)
     df.to_csv('broader_stock.csv')
